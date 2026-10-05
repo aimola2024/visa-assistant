@@ -132,6 +132,17 @@ textarea{resize:vertical;min-height:76px;line-height:1.5}
 .note{font-size:.8rem;color:var(--muted);padding:11px 18px;border-top:1px dashed var(--line)}
 .note.warn{color:var(--stamp)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.nav{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.nav a{padding:6px 14px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:500;font-size:.88rem}
+.nav a[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:.8em 0;display:flex;flex-direction:column;gap:0}
+ol.steps li{counter-increment:s;position:relative;padding:0 0 18px 46px;max-width:none}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font:600 .85rem/30px var(--f-mono);text-align:center}
+ol.steps li::after{content:"";position:absolute;left:14px;top:32px;bottom:2px;width:2px;background:var(--line)}
+ol.steps li:last-child::after{display:none}
+ol.steps b{display:block}
+ol.steps span{color:var(--muted);font-size:.9rem}
 </style>
 </head>
 <body>
@@ -144,6 +155,7 @@ textarea{resize:vertical;min-height:76px;line-height:1.5}
         <p>Подача в Тбилиси и Ереване: требования, деньги, анкета, письмо, маршрутный лист</p>
       </div>
     </div>
+    <nav class="nav"><a href="index.html" aria-current="page">Визы за рубеж</a><a href="georgia.html">Грузия</a></nav>
     <label class="access" for="code">Код доступа <input type="password" id="code" autocomplete="current-password"></label>
   </header>
 
