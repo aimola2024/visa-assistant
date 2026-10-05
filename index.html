@@ -7,115 +7,130 @@
 <title>Визовый ассистент</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Unbounded:wght@500;700&display=swap">
 <style>
-/* Layout: слева — карточка клиента (город, страна, кнопки профиля), справа — «лист» с требованиями или готовым текстом */
+/* Layout: слева — «карточка клиента» как визовое досье, справа — папка с вкладками (требования, деньги, вопросы, анкета, тексты) */
 :root{
-  --paper:#F1F4F2; --surface:#FFFFFF; --ink:#17222C; --muted:#5A6771; --line:#D5DCD8;
-  --accent:#0D5E5A; --accent-ink:#FFFFFF; --accent-soft:#E0EEEB; --stamp:#A3352B; --stamp-soft:#F6E4E1;
-  --warn:#8A5A00; --warn-soft:#FBF0D9;
+  --paper:#EEF2EF; --surface:#FFFFFF; --sunk:#F6F8F6; --ink:#15212A; --muted:#5B6870; --line:#D3DBD6;
+  --accent:#0C5C57; --accent-2:#13837B; --accent-ink:#FFFFFF; --accent-soft:#DFEDEA;
+  --stamp:#A8362B; --stamp-soft:#F7E5E1; --warn:#8A5A00; --warn-soft:#FBF0D8; --ok:#2E7D4F; --ok-soft:#E1F1E7;
   --f-display:"Unbounded","Golos Text",system-ui,sans-serif;
   --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --r:10px; color-scheme:light;
+  --r:12px; color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root{
-  --paper:#0E1418; --surface:#162027; --ink:#E4EBE8; --muted:#93A2A7; --line:#283439;
-  --accent:#55B6AC; --accent-ink:#0B1B1A; --accent-soft:#16302D; --stamp:#E58074; --stamp-soft:#3A1F1C;
-  --warn:#E8B85A; --warn-soft:#33280F; color-scheme:dark}}
+  --paper:#0D1317; --surface:#151F25; --sunk:#111A1F; --ink:#E3EAE7; --muted:#93A1A6; --line:#26333A;
+  --accent:#58B9AF; --accent-2:#7FD0C7; --accent-ink:#08201E; --accent-soft:#15302D;
+  --stamp:#E8877B; --stamp-soft:#3A201C; --warn:#E9BB5F; --warn-soft:#33290F; --ok:#6CC892; --ok-soft:#14301F; color-scheme:dark}}
 
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--f-body);padding-inline:16px;padding-block:0 32px}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--f-body);padding-inline:16px;padding-block:0 40px}
 [hidden]{display:none!important}
-.wrap{max-width:1240px;margin:0 auto}
+.wrap{max-width:1320px;margin:0 auto}
 h1,h2,h3{text-wrap:balance;margin:0}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding-block:24px 18px;border-bottom:1px solid var(--line)}
-.brand h1{font:600 1.45rem/1.15 var(--f-display);letter-spacing:-.01em}
-.brand p{margin:.35rem 0 0;color:var(--muted);font-size:.9rem}
-.access{display:flex;white-space:nowrap;gap:8px;align-items:center;font-size:.85rem;color:var(--muted)}
-.access input{width:150px}
+/* шапка */
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;padding-block:22px 16px}
+.brand{display:flex;align-items:center;gap:14px}
+.seal{width:44px;height:44px;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center;color:var(--accent);font:700 .62rem/1 var(--f-display);letter-spacing:.04em;transform:rotate(-8deg);flex:none}
+.brand h1{font:700 1.35rem/1.1 var(--f-display);letter-spacing:-.01em}
+.brand p{margin:.25rem 0 0;color:var(--muted);font-size:.86rem}
+.access{display:flex;gap:8px;align-items:center;font-size:.82rem;color:var(--muted);white-space:nowrap}
+.access input{width:140px}
 
-.label{font:500 .72rem/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
-.work{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;margin-top:24px;align-items:start}
-@media (max-width:900px){.work{grid-template-columns:minmax(0,1fr)}}
+/* сводка */
+.summary{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 16px;margin-bottom:18px}
+.summary .lbl{font:600 .68rem/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+.pill{font-size:.84rem;padding:4px 10px;border-radius:999px;background:var(--sunk);border:1px solid var(--line)}
+.pill.strong{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
 
-.form{display:flex;flex-direction:column;gap:18px}
-.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
-@media (max-width:420px){.row{grid-template-columns:1fr}}
-input[type=text],input[type=password],select,textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-textarea{resize:vertical;min-height:80px;line-height:1.5}
-#client{min-height:130px;font-family:var(--f-mono);font-size:.84rem}
+.work{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,8fr);gap:22px;align-items:start}
+@media (max-width:960px){.work{grid-template-columns:minmax(0,1fr)}}
 
-.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px}
-.seg button{flex:1;border:0;background:none;padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:500}
+/* досье */
+.dossier{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:14px}
+.card-h{display:flex;align-items:baseline;gap:10px}
+.card-h .no{font:600 .72rem/1 var(--f-mono);color:var(--accent);border:1.5px solid var(--accent);border-radius:6px;padding:3px 6px}
+.card-h h2{font:600 1rem/1.2 var(--f-body)}
+.label{font:500 .7rem/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:7px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.row3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 90px;gap:10px}
+@media (max-width:440px){.row,.row3{grid-template-columns:1fr}}
+input[type=text],input[type=password],input[type=date],input[type=number],select,textarea{width:100%;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+textarea{resize:vertical;min-height:76px;line-height:1.5}
+#client{min-height:120px;font-family:var(--f-mono);font-size:.82rem}
+.seg{display:flex;flex-wrap:wrap;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1 1 auto;border:0;background:none;padding:7px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:500;font-size:.88rem}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
-
 .group{display:flex;flex-direction:column;gap:6px}
-.group .gl{font-size:.82rem;color:var(--muted)}
+.gl{font-size:.8rem;color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:.88rem;line-height:1.2}
-.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink);box-shadow:inset 0 0 0 1px var(--accent)}
-.profile{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
-.profile .chip{background:var(--paper)}
-.profile .chip[aria-pressed="true"]{background:var(--accent-soft)}
-
-.tasks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.task{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:10px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px}
-.task b{font-weight:600;font-size:.92rem}
-.task span{font-size:.78rem;color:var(--muted)}
-.task[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
-.task.wide{grid-column:1/-1}
-@media (max-width:420px){.tasks{grid-template-columns:1fr}}
-
-.hint{font-size:.8rem;color:var(--muted);margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--line);background:var(--sunk);border-radius:999px;padding:5px 11px;cursor:pointer;font-size:.86rem;line-height:1.25}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.chip select{border:0;background:transparent;padding:0;font-size:.86rem}
+.hint{font-size:.78rem;color:var(--muted);margin-top:5px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .link{border:0;background:none;padding:0;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-size:.8rem}
-.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:11px 18px;font-weight:600;cursor:pointer}
+
+/* папка с вкладками */
+.folder{position:sticky;top:12px;display:flex;flex-direction:column;min-width:0}
+@media (max-width:960px){.folder{position:static}}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;padding-left:10px}
+.tab{flex:none;border:1px solid var(--line);border-bottom:0;background:var(--sunk);color:var(--muted);border-radius:10px 10px 0 0;padding:8px 13px;cursor:pointer;font-size:.86rem;font-weight:500;position:relative;top:1px}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:600}
+.tab .ai{font:600 .6rem/1 var(--f-mono);color:var(--accent);margin-left:4px;vertical-align:2px}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;min-height:620px}
+.gen{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:14px 18px;border-bottom:1px dashed var(--line);background:var(--sunk);border-radius:var(--r) var(--r) 0 0}
+.gen > div{flex:1 1 180px;min-width:0}
+.gen .grow{flex:3 1 260px}
+.toolbar{display:flex;justify-content:flex-end;gap:8px;padding:10px 18px 0}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;white-space:nowrap}
 .btn:disabled{opacity:.55;cursor:default}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line);font-weight:500}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-
-.sheet{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-height:560px;display:flex;flex-direction:column;min-width:0;position:sticky;top:12px}
-@media (max-width:900px){.sheet{position:static}}
-.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px dashed var(--line)}
-.sheet-head .label{margin:0}
-.out{padding:22px 26px;overflow-wrap:anywhere;flex:1;max-height:calc(100vh - 160px);overflow-y:auto}
-@media (max-width:900px){.out{max-height:none}}
-.out h2{font:600 1.15rem/1.3 var(--f-body);margin-bottom:.3em}
-.out h3{font:600 1rem/1.3 var(--f-body);margin:1.3em 0 .45em}
+.out{padding:14px 26px 24px;overflow-wrap:anywhere;flex:1;max-height:calc(100vh - 210px);overflow-y:auto}
+@media (max-width:960px){.out{max-height:none}}
+.out h2{font:600 1.18rem/1.3 var(--f-body);margin-bottom:.2em}
+.out h3{font:600 .98rem/1.3 var(--f-body);margin:1.4em 0 .45em;display:flex;align-items:center;gap:8px}
 .out h3:first-child{margin-top:0}
-.out p{margin:.5em 0;max-width:70ch}
+.out p{margin:.5em 0;max-width:72ch}
 .out ul{margin:.4em 0;padding-left:1.25em}
-.out li{margin:.25em 0;max-width:68ch}
+.out li{margin:.25em 0;max-width:70ch}
 .out li.chk{list-style:none;margin-left:-1.25em;padding-left:1.6em;position:relative}
 .out li.chk::before{content:"";position:absolute;left:0;top:.35em;width:.9em;height:.9em;border:1.5px solid var(--accent);border-radius:3px}
 .out a{color:var(--accent)}
 .sub{color:var(--muted);font-size:.85rem}
 .fill{background:var(--stamp-soft);color:var(--stamp);border-radius:4px;padding:0 4px}
-.box{border-radius:8px;padding:10px 14px;margin:.8em 0;font-size:.9rem}
+.box{border-radius:10px;padding:10px 14px;margin:.7em 0;font-size:.9rem}
 .box.warn{background:var(--warn-soft);color:var(--warn)}
+.box.stop{background:var(--stamp-soft);color:var(--stamp)}
+.box.ok{background:var(--ok-soft);color:var(--ok)}
 .box.info{background:var(--accent-soft)}
-.box.comment{background:var(--stamp-soft);color:var(--ink);border-left:3px solid var(--stamp)}
+.box.comment{background:var(--sunk);border-left:3px solid var(--stamp)}
 .kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;margin:.4em 0}
 .kv dt{color:var(--muted);font-size:.85rem}
 .kv dd{margin:0}
-.tag{display:inline-block;font:500 .7rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:4px;background:var(--warn-soft);color:var(--warn);vertical-align:middle;margin-left:6px}
-.empty{color:var(--muted);display:flex;flex-direction:column;gap:12px;max-width:46ch}
+.tag{display:inline-block;font:600 .66rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:4px;background:var(--warn-soft);color:var(--warn)}
+.big{font:700 2rem/1.1 var(--f-display);letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--accent)}
+.prog{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:.6em 0}
+.prog b{display:block;margin-bottom:3px}
+.tbl{overflow-x:auto;margin:.6em 0;border:1px solid var(--line);border-radius:10px}
+.tbl table{border-collapse:collapse;width:100%;min-width:600px;font-size:.86rem}
+.tbl th,.tbl td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+.tbl th{font:600 .68rem/1.25 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunk)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.num{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.tbl td.ex{font-family:var(--f-mono);font-size:.8rem}
+.empty{color:var(--muted);display:flex;flex-direction:column;gap:12px;max-width:50ch;padding-top:10px}
 .empty .stamp{align-self:flex-start;font:600 .72rem/1 var(--f-mono);letter-spacing:.12em;color:var(--stamp);border:2px solid var(--stamp);border-radius:6px;padding:6px 10px;transform:rotate(-4deg)}
 .thinking{color:var(--muted);font-style:italic}
-.note{font-size:.82rem;color:var(--muted);padding:12px 18px;border-top:1px dashed var(--line)}
+.note{font-size:.8rem;color:var(--muted);padding:11px 18px;border-top:1px dashed var(--line)}
 .note.warn{color:var(--stamp)}
-.ftable{overflow-x:auto;margin:.6em 0;border:1px solid var(--line);border-radius:8px}
-.ftable table{border-collapse:collapse;width:100%;min-width:560px;font-size:.86rem}
-.ftable th,.ftable td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
-.ftable th{font:500 .7rem/1.2 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
-.ftable td:first-child{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
-.ftable td.ex{font-family:var(--f-mono);font-size:.8rem}
-.ftable tr:last-child td{border-bottom:0}
-.mrz{margin-top:36px;font:400 .78rem/1.5 var(--f-mono);color:var(--muted);opacity:.7;overflow:hidden;white-space:nowrap;letter-spacing:.12em;user-select:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -123,96 +138,133 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
 <div class="wrap">
   <header>
     <div class="brand">
-      <h1>Визовый ассистент</h1>
-      <p>Требования, письма, маршруты и ответы клиентам — подача в Тбилиси и Ереване</p>
+      <div class="seal" aria-hidden="true">VISA</div>
+      <div>
+        <h1>Визовый ассистент</h1>
+        <p>Подача в Тбилиси и Ереване: требования, деньги, анкета, письмо, маршрутный лист</p>
+      </div>
     </div>
     <label class="access" for="code">Код доступа <input type="password" id="code" autocomplete="current-password"></label>
   </header>
 
+  <div class="summary" id="summary" aria-live="polite"></div>
+
   <div class="work">
-    <form class="form" id="form">
-      <div class="row">
-        <div>
-          <span class="label">Город подачи</span>
-          <div class="seg" id="city">
-            <button type="button" data-v="tbilisi" aria-pressed="true">Тбилиси</button>
-            <button type="button" data-v="yerevan" aria-pressed="false">Ереван</button>
-          </div>
+    <!-- ================= ДОСЬЕ ================= -->
+    <form class="dossier" id="form" autocomplete="off">
+      <section class="card">
+        <div class="card-h"><span class="no">01</span><h2>Поездка</h2></div>
+        <div class="row">
+          <div><span class="label">Город подачи</span>
+            <div class="seg" id="city"><button type="button" data-v="tbilisi" aria-pressed="true">Тбилиси</button><button type="button" data-v="yerevan" aria-pressed="false">Ереван</button></div></div>
+          <div><label class="label" for="country">Страна</label><select id="country"></select></div>
         </div>
-        <div>
-          <label class="label" for="country">Страна визы</label>
-          <select id="country"></select>
+        <div><span class="label">Тип визы</span>
+          <div class="seg" id="vtype">
+            <button type="button" data-v="short" aria-pressed="true">Краткосрочная</button>
+            <button type="button" data-v="work" aria-pressed="false">Работа</button>
+            <button type="button" data-v="nomad" aria-pressed="false">Цифровой кочевник</button>
+            <button type="button" data-v="study" aria-pressed="false">Учёба</button>
+          </div></div>
+        <div class="row3" id="dates-row">
+          <div><label class="label" for="from">Въезд</label><input type="date" id="from"></div>
+          <div><label class="label" for="to">Выезд</label><input type="date" id="to"></div>
+          <div><label class="label" for="persons">Человек</label><input type="number" id="persons" min="1" max="20" value="1"></div>
         </div>
-      </div>
+        <div class="group" id="stay-group"><span class="gl">Проживание</span>
+          <div class="chips" data-single="stay">
+            <button type="button" class="chip" data-v="hotel">Отель (бронь)</button>
+            <button type="button" class="chip" data-v="private">У родных / знакомых (приглашение)</button>
+            <button type="button" class="chip" data-v="none">Пока не подтверждено</button>
+          </div></div>
+        <div class="group" id="purpose-group"><span class="gl">Цель поездки</span>
+          <div class="chips" data-single="purpose">
+            <button type="button" class="chip" data-v="tourism">Туризм</button><button type="button" class="chip" data-v="family">К родным / друзьям</button>
+            <button type="button" class="chip" data-v="business">Бизнес</button><button type="button" class="chip" data-v="medical">Лечение</button>
+            <button type="button" class="chip" data-v="event">Мероприятие</button><button type="button" class="chip" data-v="study">Краткая учёба</button>
+          </div></div>
+      </section>
 
-      <div>
-        <span class="label">О клиенте</span>
-        <div class="profile" id="profile"></div>
-      </div>
+      <section class="card">
+        <div class="card-h"><span class="no">02</span><h2>Клиент</h2></div>
+        <div class="group"><span class="gl">Гражданство</span>
+          <div class="chips" id="citizen-chips"></div></div>
+        <div class="group"><span class="gl">Занятость</span>
+          <div class="chips" data-single="job">
+            <button type="button" class="chip" data-v="employed">По найму</button><button type="button" class="chip" data-v="ie">ИП</button>
+            <button type="button" class="chip" data-v="owner">Владелец бизнеса</button><button type="button" class="chip" data-v="freelancer">Фрилансер / удалёнка</button>
+            <button type="button" class="chip" data-v="student">Студент</button><button type="button" class="chip" data-v="schoolchild">Школьник</button>
+            <button type="button" class="chip" data-v="pensioner">Пенсионер</button><button type="button" class="chip" data-v="unemployed">Не работает</button>
+          </div></div>
+        <div class="group"><span class="gl">Кто оплачивает</span>
+          <div class="chips" data-single="payer">
+            <button type="button" class="chip" data-v="selfpay">Сам</button><button type="button" class="chip" data-v="sponsor">Спонсор-родственник</button>
+            <button type="button" class="chip" data-v="host">Приглашающая сторона</button><button type="button" class="chip" data-v="employerpay">Работодатель</button>
+          </div></div>
+        <div class="group"><span class="gl">С кем едет</span>
+          <div class="chips" data-single="travel">
+            <button type="button" class="chip" data-v="alone">Один</button><button type="button" class="chip" data-v="spouse">С супругом</button>
+            <button type="button" class="chip" data-v="kids">С детьми</button><button type="button" class="chip" data-v="minorAlone">Ребёнок без одного из родителей</button>
+          </div></div>
+        <div class="group"><span class="gl">Визовая история · можно несколько</span>
+          <div class="chips" data-multi="history">
+            <button type="button" class="chip" data-v="firstVisa">Первая виза</button><button type="button" class="chip" data-v="priorVisas">Были визы (шенген / UK / US)</button>
+            <button type="button" class="chip" data-v="refusals">Были отказы</button>
+          </div></div>
+        <div class="group"><span class="gl">Что держит дома · можно несколько — попадёт в письмо</span>
+          <div class="chips" data-multi="ties">
+            <button type="button" class="chip" data-v="property">Недвижимость</button><button type="button" class="chip" data-v="car">Автомобиль</button>
+            <button type="button" class="chip" data-v="mortgage">Ипотека</button><button type="button" class="chip" data-v="loan">Кредит</button>
+            <button type="button" class="chip" data-v="shop">Бизнес-точка / офис</button><button type="button" class="chip" data-v="rental">Сдаёт жильё</button>
+            <button type="button" class="chip" data-v="deposit">Депозит / сбережения</button><button type="button" class="chip" data-v="longJob">Стаж 5+ лет</button>
+            <button type="button" class="chip" data-v="kidsHome">Дети остаются дома</button><button type="button" class="chip" data-v="spouseHome">Супруг(а) остаётся</button>
+            <button type="button" class="chip" data-v="parentsCare">Уход за родителями</button><button type="button" class="chip" data-v="pets">Домашние животные</button>
+            <button type="button" class="chip" data-v="studyHome">Продолжает учёбу</button>
+          </div></div>
+      </section>
 
-      <div>
-        <label class="label" for="comments">Важные комментарии</label>
-        <textarea id="comments" placeholder="Например: был отказ в 2024 (Германия), паспорт выдан 2 месяца назад, зарплата частично в конверте, едет к сестре с ВНЖ"></textarea>
-      </div>
-
-      <div>
-        <span class="label">Что подготовить</span>
-        <div class="tasks">
-          <button type="button" class="task wide" data-task="req" aria-pressed="true"><b>Требования и документы</b><span>сразу, без генерации — где подавать, сбор, список под профиль</span></button>
-          <button type="button" class="task" data-task="letter" aria-pressed="false"><b>Сопроводительное письмо</b><span>в консульство</span></button>
-          <button type="button" class="task" data-task="itinerary" aria-pressed="false"><b>Маршрут поездки</b><span>по дням</span></button>
-          <button type="button" class="task" data-task="checklist" aria-pressed="false"><b>Чек-лист клиенту</b><span>текст в мессенджер</span></button>
-          <button type="button" class="task" data-task="reply" aria-pressed="false"><b>Ответ клиенту</b><span>на сложный вопрос</span></button>
-          <button type="button" class="task wide" data-task="form" aria-pressed="false"><b>Анкета</b><span>ссылка на официальную анкету, пример заполнения по полям, ответы по данным клиента</span></button>
-        </div>
-      </div>
-
-      <div id="ai-fields" hidden>
-        <div id="lang-wrap" style="margin-bottom:16px">
-          <label class="label" for="lang">Язык документа</label>
-          <select id="lang">
-            <option value="английском">Английский</option>
-            <option value="французском">Французский</option>
-            <option value="немецком">Немецкий</option>
-            <option value="итальянском">Итальянский</option>
-            <option value="испанском">Испанский</option>
-            <option value="русском">Русский</option>
-          </select>
-        </div>
-        <div id="client-wrap" style="margin-bottom:16px">
-          <label class="label" for="client">Данные клиента</label>
-          <textarea id="client" placeholder="ФИО, дата рождения, паспорт до …&#10;Работа, должность, стаж, доход&#10;Даты и города поездки, где живёт&#10;Семья, предыдущие визы"></textarea>
-          <div class="hint">Пишите как удобно. <button type="button" class="link" id="example">Вставить пример</button></div>
-        </div>
-        <div id="question-wrap" hidden style="margin-bottom:16px">
-          <label class="label" for="question">Вопрос клиента</label>
-          <textarea id="question" placeholder="Например: «Почему нужна выписка за 3 месяца, если деньги на карте есть?»"></textarea>
-        </div>
-        <div style="margin-bottom:16px">
-          <label class="label" for="extra">Пожелания к тексту (необязательно)</label>
-          <input type="text" id="extra" placeholder="Например: короче, упор на работу">
-        </div>
-        <div class="actions">
-          <button type="submit" class="btn" id="go">Подготовить</button>
-          <button type="button" class="btn ghost" id="stop" hidden>Остановить</button>
-        </div>
-      </div>
+      <section class="card">
+        <div class="card-h"><span class="no">03</span><h2>Детали</h2></div>
+        <div><label class="label" for="comments">Важные комментарии</label>
+          <textarea id="comments" placeholder="Например: отказ Германии в 2024, паспорт выдан 2 месяца назад, часть дохода неофициальная, едет к сестре с ВНЖ"></textarea></div>
+        <div><label class="label" for="client">Данные клиента</label>
+          <textarea id="client" placeholder="ФИО, дата рождения, паспорт до …&#10;Работа: компания, должность, с какого года, зарплата&#10;Города и отели, на счёте ~…&#10;Семья, ипотека, бизнес, животные…"></textarea>
+          <div class="hint">Пишите как удобно — по ответам на вкладке «Вопросы». <button type="button" class="link" id="example">Вставить пример</button></div></div>
+      </section>
     </form>
 
-    <article class="sheet" aria-live="polite">
-      <div class="sheet-head">
-        <span class="label" id="sheet-title">Требования и документы</span>
-        <div class="actions">
-          <button type="button" class="btn ghost" id="copy">Копировать</button>
-          <button type="button" class="btn ghost" id="again" hidden disabled>Другой вариант</button>
-        </div>
+    <!-- ================= ПАПКА ================= -->
+    <section class="folder">
+      <div class="tabs" role="tablist" id="tabs">
+        <button class="tab" role="tab" data-t="req" aria-selected="true">Требования</button>
+        <button class="tab" role="tab" data-t="money" aria-selected="false">Деньги</button>
+        <button class="tab" role="tab" data-t="questions" aria-selected="false">Вопросы клиенту</button>
+        <button class="tab" role="tab" data-t="form" aria-selected="false">Анкета</button>
+        <button class="tab" role="tab" data-t="letter" aria-selected="false">Письмо<span class="ai">AI</span></button>
+        <button class="tab" role="tab" data-t="itinerary" aria-selected="false">Маршрутный лист<span class="ai">AI</span></button>
+        <button class="tab" role="tab" data-t="checklist" aria-selected="false">Чек-лист<span class="ai">AI</span></button>
+        <button class="tab" role="tab" data-t="reply" aria-selected="false">Ответ клиенту<span class="ai">AI</span></button>
       </div>
-      <div class="out" id="out"></div>
-      <div class="note" id="note"></div>
-    </article>
+      <div class="sheet">
+        <div class="gen" id="gen" hidden>
+          <div id="lang-wrap"><label class="label" for="lang">Язык</label>
+            <select id="lang"><option value="английском">Английский</option><option value="французском">Французский</option><option value="немецком">Немецкий</option><option value="итальянском">Итальянский</option><option value="испанском">Испанский</option><option value="греческом">Греческий</option><option value="русском">Русский</option></select></div>
+          <div id="question-wrap" class="grow"><label class="label" for="question">Вопрос клиента</label>
+            <input type="text" id="question" placeholder="«Почему нужна выписка за 3 месяца, если деньги на карте есть?»"></div>
+          <div class="grow"><label class="label" for="extra">Пожелания к тексту</label>
+            <input type="text" id="extra" placeholder="Например: короче, упор на бизнес"></div>
+          <div style="flex:0 0 auto"><button type="button" class="btn" id="go">Подготовить</button>
+            <button type="button" class="btn ghost" id="stop" hidden>Стоп</button></div>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="btn ghost" id="again" hidden>Другой вариант</button>
+          <button type="button" class="btn ghost" id="copy">Копировать</button>
+        </div>
+        <div class="out" id="out"></div>
+        <div class="note" id="note"></div>
+      </div>
+    </section>
   </div>
-
-  <div class="mrz" aria-hidden="true">V&lt;GEOARM&lt;&lt;VISA&lt;&lt;ASSISTANT&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>TBS&lt;EVN&lt;0000000000&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;00</div>
 </div>
 
 <script src="data.js"></script>
@@ -220,360 +272,474 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
 (() => {
   const D = window.VISA_DATA;
   const $ = (id) => document.getElementById(id);
+  const out = $("out"), note = $("note");
 
-  /* ===== Тон и подпись центра (для ответов клиентам) ===== */
-  const CENTER = {
-    tone: "вежливо, на «вы», спокойно и по делу, без канцелярита",
-    signature: "" // например: "Команда визового центра «…», +995 …"
+  /* Тон и подпись центра — для ответов клиентам */
+  const CENTER = { tone: "вежливо, на «вы», спокойно и по делу, без канцелярита", signature: "" };
+
+  const MAIN_CIT = ["ge", "am", "az", "ru", "by", "kz", "ua"];
+  const LABELS = {
+    job: { employed: "по найму", ie: "ИП", owner: "владелец бизнеса", freelancer: "фрилансер / удалёнка", student: "студент", schoolchild: "школьник", pensioner: "пенсионер", unemployed: "не работает" },
+    payer: { selfpay: "сам", sponsor: "спонсор-родственник", host: "приглашающая сторона", employerpay: "работодатель" },
+    purpose: { tourism: "туризм", family: "к родным / друзьям", business: "бизнес", medical: "лечение", event: "мероприятие", study: "краткая учёба" },
+    travel: { alone: "один", spouse: "с супругом", kids: "с детьми", minorAlone: "ребёнок без одного из родителей" },
+    history: { firstVisa: "первая виза", priorVisas: "были визы", refusals: "были отказы" },
+    ties: { property: "недвижимость", car: "автомобиль", mortgage: "ипотека", loan: "кредит", shop: "бизнес-точка / офис", rental: "сдаёт жильё", deposit: "депозит / сбережения", longJob: "стаж 5+ лет", kidsHome: "дети остаются дома", spouseHome: "супруг(а) остаётся", parentsCare: "уход за родителями", pets: "домашние животные", studyHome: "продолжает учёбу" },
+    stay: { hotel: "отель", private: "у родных / знакомых", none: "жильё не подтверждено" },
+    vtype: { short: "краткосрочная", work: "рабочая", nomad: "цифровой кочевник", study: "учёба" }
   };
+  const state = { city: "tbilisi", country: "fr", vtype: "short", citizen: "am", job: "employed", payer: "selfpay",
+    purpose: "tourism", travel: "alone", stay: "hotel", history: [], ties: [], tab: "req" };
 
-  /* ===== Кнопки профиля: группы и варианты ===== */
-  const PROFILE = [
-    { key: "citizen", label: "Гражданство", multi: false, opts: [["ge","Грузия"],["am","Армения"],["ru","Россия"],["other","Другое (с ВНЖ)"]] },
-    { key: "job", label: "Занятость", multi: false, opts: [["employed","Работает по найму"],["ie","ИП"],["owner","Владелец бизнеса"],["freelancer","Фрилансер"],["student","Студент"],["schoolchild","Школьник"],["pensioner","Пенсионер"],["unemployed","Не работает"]] },
-    { key: "payer", label: "Кто оплачивает", multi: false, opts: [["selfpay","Сам"],["sponsor","Спонсор-родственник"],["host","Приглашающая сторона"],["employerpay","Работодатель"]] },
-    { key: "purpose", label: "Цель поездки", multi: false, opts: [["tourism","Туризм"],["family","К родным / друзьям"],["business","Бизнес"],["medical","Лечение"],["event","Мероприятие"],["study","Краткая учёба"]] },
-    { key: "travel", label: "С кем едет", multi: false, opts: [["alone","Один"],["spouse","С супругом"],["kids","С детьми"],["minorAlone","Ребёнок без одного из родителей"]] },
-    { key: "history", label: "Визовая история", multi: true, opts: [["firstVisa","Первая виза"],["priorVisas","Были шенген/UK/US визы"],["refusals","Были отказы"]] },
-    { key: "assets", label: "Имущество", multi: true, opts: [["property","Недвижимость"],["car","Автомобиль"]] }
-  ];
-  const state = { city: "tbilisi", country: "fr", task: "req",
-    citizen: "ge", job: "employed", payer: "selfpay", purpose: "tourism", travel: "alone", history: [], assets: [] };
-
-  /* ===== Построение формы ===== */
+  /* ---------- построение формы ---------- */
   const sel = $("country");
-  const groups = [...new Set(D.countries.map(c => c.group))];
-  sel.innerHTML = groups.map(g => `<optgroup label="${g}">` +
-    D.countries.filter(c => c.group === g).sort((a, b) => a.name.localeCompare(b.name, "ru"))
-      .map(c => `<option value="${c.id}">${c.name}</option>`).join("") + `</optgroup>`).join("");
+  [...new Set(D.countries.map(c => c.group))].forEach(g => {
+    const og = document.createElement("optgroup"); og.label = g;
+    D.countries.filter(c => c.group === g).sort((a, b) => a.name.localeCompare(b.name, "ru")).forEach(c => {
+      const o = document.createElement("option"); o.value = c.id; o.textContent = c.name; og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
   sel.value = state.country;
 
-  const prof = $("profile");
-  PROFILE.forEach(g => {
-    const wrap = document.createElement("div"); wrap.className = "group";
-    wrap.innerHTML = `<span class="gl">${g.label}${g.multi ? " · можно несколько" : ""}</span>`;
-    const chips = document.createElement("div"); chips.className = "chips";
-    g.opts.forEach(([v, t]) => {
-      const b = document.createElement("button");
-      b.type = "button"; b.className = "chip"; b.textContent = t; b.dataset.g = g.key; b.dataset.v = v;
-      b.onclick = () => {
-        if (g.multi) {
-          const arr = state[g.key]; const i = arr.indexOf(v);
-          i >= 0 ? arr.splice(i, 1) : arr.push(v);
-          if (g.key === "history" && v === "firstVisa" && i < 0) state.history = ["firstVisa"];
-          if (g.key === "history" && v !== "firstVisa") state.history = state.history.filter(x => x !== "firstVisa");
-        } else state[g.key] = v;
-        syncChips(); update();
-      };
-      chips.appendChild(b);
-    });
-    wrap.appendChild(chips); prof.appendChild(wrap);
+  const cc = $("citizen-chips");
+  MAIN_CIT.forEach(id => {
+    const c = D.citizenships.find(x => x.id === id);
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.cit = id; b.textContent = c.name;
+    b.onclick = () => { state.citizen = id; $("cit-more").value = ""; sync(); };
+    cc.appendChild(b);
   });
-  function syncChips() {
-    prof.querySelectorAll(".chip").forEach(b => {
-      const cur = state[b.dataset.g];
-      b.setAttribute("aria-pressed", Array.isArray(cur) ? cur.includes(b.dataset.v) : cur === b.dataset.v);
-    });
+  const more = document.createElement("label"); more.className = "chip"; more.id = "cit-more-wrap";
+  more.innerHTML = `<select id="cit-more" aria-label="Другое гражданство"><option value="">Другое…</option>${D.citizenships.filter(c => !MAIN_CIT.includes(c.id)).map(c => `<option value="${c.id}">${c.name}</option>`).join("")}</select>`;
+  cc.appendChild(more);
+  $("cit-more").onchange = (e) => { if (e.target.value) { state.citizen = e.target.value; sync(); } };
+
+  document.querySelectorAll("[data-single]").forEach(box => box.querySelectorAll(".chip").forEach(b => b.onclick = () => { state[box.dataset.single] = b.dataset.v; sync(); }));
+  document.querySelectorAll("[data-multi]").forEach(box => box.querySelectorAll(".chip").forEach(b => b.onclick = () => {
+    const k = box.dataset.multi, v = b.dataset.v, arr = state[k], i = arr.indexOf(v);
+    i >= 0 ? arr.splice(i, 1) : arr.push(v);
+    if (k === "history") { if (v === "firstVisa" && i < 0) state.history = ["firstVisa"]; else if (v !== "firstVisa") state.history = state.history.filter(x => x !== "firstVisa"); }
+    sync();
+  }));
+  [["city", "city"], ["vtype", "vtype"]].forEach(([id, key]) => $(id).querySelectorAll("button").forEach(b => b.onclick = () => { state[key] = b.dataset.v; sync(); }));
+  sel.onchange = () => { state.country = sel.value; sync(); };
+  ["from", "to", "persons"].forEach(id => $(id).addEventListener("change", () => sync()));
+  $("comments").addEventListener("input", () => { if (["req"].includes(state.tab)) renderTab(); });
+
+  function sync() {
+    document.querySelectorAll("[data-single]").forEach(box => box.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", state[box.dataset.single] === b.dataset.v)));
+    document.querySelectorAll("[data-multi]").forEach(box => box.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", state[box.dataset.multi].includes(b.dataset.v))));
+    ["city", "vtype"].forEach(k => $(k).querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", state[k] === b.dataset.v)));
+    cc.querySelectorAll("[data-cit]").forEach(b => b.setAttribute("aria-pressed", state.citizen === b.dataset.cit));
+    $("cit-more-wrap").setAttribute("aria-pressed", !MAIN_CIT.includes(state.citizen));
+    if (!MAIN_CIT.includes(state.citizen)) $("cit-more").value = state.citizen;
+    const short = state.vtype === "short";
+    $("purpose-group").hidden = !short; $("stay-group").hidden = !short;
+    renderSummary(); renderTab();
   }
 
-  $("city").querySelectorAll("button").forEach(b => b.onclick = () => {
-    state.city = b.dataset.v;
-    $("city").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
-    if (state.city === "yerevan" && state.citizen === "ge") state.citizen = "am";
-    if (state.city === "tbilisi" && state.citizen === "am") state.citizen = "ge";
-    syncChips(); update();
-  });
-  sel.onchange = () => { state.country = sel.value; update(); };
-  $("comments").addEventListener("input", () => { if (state.task === "req") renderReq(); });
-  const formOf = (place) => D.forms[place.form] || D.forms.harmonised;
-
-  const TASKS = {
-    req: "Требования и документы", letter: "Сопроводительное письмо", itinerary: "Маршрут поездки",
-    checklist: "Чек-лист клиенту", reply: "Ответ клиенту", form: "Анкета"
-  };
-  document.querySelectorAll(".task").forEach(b => b.onclick = () => {
-    state.task = b.dataset.task;
-    document.querySelectorAll(".task").forEach(x => x.setAttribute("aria-pressed", x === b));
-    const ai = state.task !== "req";
-    $("ai-fields").hidden = !ai;
-    $("lang-wrap").hidden = !["letter", "itinerary"].includes(state.task);
-    $("question-wrap").hidden = state.task !== "reply";
-    $("again").hidden = !ai;
-    $("go").textContent = state.task === "form" ? "Заполнить анкету по данным клиента" : "Подготовить";
-    $("sheet-title").textContent = TASKS[state.task];
-    showCurrent();
-  });
-  // Показать то, что относится к выбранной задаче
-  function showCurrent() {
-    if (state.task === "req") return renderReq();
-    if (lastRaw && lastTask === state.task) { out.innerHTML = render(lastRaw) + (state.task === "form" ? backToGuide() : ""); return; }
-    if (state.task === "form") return renderForm();
-    showEmpty();
-  }
-  const backToGuide = () => `<p><button type="button" class="link" id="to-guide">← Показать памятку по анкете</button></p>`;
-  document.addEventListener("click", (e) => { if (e.target.id === "to-guide") { lastRaw = ""; renderForm(); } });
-
-  /* ===== Требования: сборка из базы ===== */
-  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  /* ---------- общие помощники ---------- */
+  const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const country = () => D.countries.find(c => c.id === state.country);
-  const labelOf = (key, v) => (PROFILE.find(g => g.key === key).opts.find(o => o[0] === v) || [, ""])[1];
-  function profileKeys() { return [state.job, state.payer, state.purpose, state.travel, ...state.history, ...state.assets]; }
+  const cit = () => D.citizenships.find(c => c.id === state.citizen);
+  const city = () => D.cities[state.city];
+  const place = () => country()[state.city];
+  const isSchengen = () => country().group === "Шенген";
+  const formOf = (p) => D.forms[p.form] || D.forms.harmonised;
+  const link = (u, t) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t || u.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</a>`;
+  const isResident = () => (state.city === "tbilisi" && state.citizen === "ge") || (state.city === "yerevan" && state.citizen === "am");
+  function days() {
+    const a = $("from").value, b = $("to").value;
+    if (!a || !b) return 0;
+    const d = Math.round((new Date(b) - new Date(a)) / 86400000) + 1;
+    return d > 0 ? d : 0;
+  }
+  const fmtDate = (v) => v ? v.split("-").reverse().join(".") : "";
   function profileText() {
-    return PROFILE.map(g => {
-      const v = state[g.key];
-      const t = Array.isArray(v) ? v.map(x => labelOf(g.key, x)).join(", ") : labelOf(g.key, v);
-      return t ? `${g.label}: ${t}` : "";
-    }).filter(Boolean).join("\n");
+    const L = LABELS, p = [];
+    p.push(`Гражданство: ${cit().name}`);
+    p.push(`Тип визы: ${L.vtype[state.vtype]}`);
+    if (state.vtype === "short") p.push(`Цель: ${L.purpose[state.purpose]}`, `Проживание: ${L.stay[state.stay]}`);
+    p.push(`Занятость: ${L.job[state.job]}`, `Оплачивает: ${L.payer[state.payer]}`, `Едет: ${L.travel[state.travel]}`);
+    if (state.history.length) p.push(`Визовая история: ${state.history.map(x => L.history[x]).join(", ")}`);
+    if (state.ties.length) p.push(`Связь с домом: ${state.ties.map(x => L.ties[x]).join(", ")}`);
+    if (days()) p.push(`Даты: ${fmtDate($("from").value)} — ${fmtDate($("to").value)} (${days()} дн.), человек: ${$("persons").value || 1}`);
+    return p.join("\n");
   }
 
-  function buildReq() {
-    const c = country(), city = D.cities[state.city], place = c[state.city];
-    const schengen = c.group === "Шенген";
-    const warnings = [];
-    if (schengen && state.citizen === "ge")
-      warnings.push("Граждане Грузии с биометрическим паспортом въезжают в Шенген без визы на срок до 90 дней в любые 180 дней. Для пребывания дольше 90 дней, работы или длительной учёбы нужна национальная виза (D). После запуска ETIAS (ЕС планирует его на конец 2026 года) перед поездкой понадобится электронное разрешение.");
-    if (state.city === "tbilisi" && !["ge"].includes(state.citizen))
-      warnings.push("Иностранец подаёт в Тбилиси только с грузинским ВНЖ. Приложите ВНЖ и подтверждение проживания.");
-    if (state.city === "yerevan" && !["am"].includes(state.citizen))
-      warnings.push("Иностранец подаёт в Ереване только при законном проживании в Армении: приложите вид на жительство.");
-    if (state.citizen === "ru" && schengen)
-      warnings.push("Для граждан России сроки рассмотрения обычно дольше: закладывайте до 45 дней.");
-    if (place.check) warnings.push("Место подачи по этой стране требует проверки — позвоните в посольство или визовый центр перед записью.");
+  function renderSummary() {
+    const c = country(), z = cit();
+    let h = `<span class="lbl">Досье</span><span class="pill strong">${esc(c.name)}</span><span class="pill">${esc(city().name)}</span><span class="pill">${esc(LABELS.vtype[state.vtype])}</span><span class="pill">${esc(z.name)}</span>`;
+    if (isSchengen() && state.vtype === "short" && z.short === "free") h += `<span class="pill ok">безвиз до 90 дней</span>`;
+    const r = (D.restrictions[state.citizen] || {})[c.id];
+    if (r) h += `<span class="pill warn">ограничения для гражданства</span>`;
+    if (place().check) h += `<span class="pill warn">место подачи — уточнить</span>`;
+    if (days()) h += `<span class="pill">${days()} дн.</span>`;
+    $("summary").innerHTML = h;
+  }
 
-    let fee;
-    if (schengen && state.citizen === "ge") fee = "Для поездки до 90 дней виза не нужна. Если оформляется национальная виза (D) — сбор по тарифу страны назначения.";
-    else if (schengen) fee = (state.city === "yerevan" && state.citizen === "am") ? "35 € (гражданам Армении, по соглашению об упрощении визового режима) + сервисный сбор визового центра, если подача через центр" : D.schengen.fees[state.city];
-    else fee = c.fees || "Уточните на официальном сайте";
+  /* ---------- деньги ---------- */
+  function money() {
+    const c = country(), m = D.means[c.id];
+    if (!isSchengen() || !m) return null;
+    const n = days(), persons = Math.max(1, parseInt($("persons").value, 10) || 1);
+    const minor = state.job === "schoolchild", student = state.job === "student";
+    let per = null, total = null, how = "";
+    if (m.acc) per = state.stay === "none" ? m.acc.no : (c.id === "be" ? (state.stay === "hotel" ? m.acc.yes : m.acc.no) : m.acc.yes);
+    else if (m.perDay != null) per = m.perDay;
+    if (minor && m.minor) per = m.minor;
+    if (student && m.student) per = m.student;
+    if (c.id === "cz" && minor) per = m.perDay / 2;
+    if (n) {
+      if (m.plRule) { total = n <= 4 ? 300 : 75 * n; how = n <= 4 ? "300 PLN на поездку до 4 дней" : `${n} дн. × 75 PLN`; }
+      else if (m.fixedShort && n <= m.fixedShort.days) { total = m.fixedShort.amount; how = `фиксированно на поездку до ${m.fixedShort.days} дней`; }
+      else if (c.id === "it") { total = null; }
+      else if (per != null) { total = per * n + (m.perEntry || 0); how = `${n} дн. × ${fmt(per)} ${m.cur}${m.perEntry ? ` + ${m.perEntry} ${m.cur} за въезд` : ""}`; }
+      if (total != null && m.min && total < m.min) { total = m.min; how += ` → минимум ${fmt(m.min)} ${m.cur}`; }
+    }
+    return { m, n, per, total, how, persons, all: total != null ? total * persons : null };
+  }
+  const fmt = (x) => Number(x).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+  function moneyLine() {
+    const r = money(); if (!r) return "";
+    if (r.all != null) return `Минимум на поездку: ${fmt(r.all)} ${r.m.cur}${r.persons > 1 ? ` на ${r.persons} чел.` : ""} (${r.how}).`;
+    return r.m.text || r.m.note || (r.per != null ? `${fmt(r.per)} ${r.m.cur} в день` : "");
+  }
 
-    const base = schengen ? D.schengen.docs : (c.docs || []);
-    const profDocs = [];
-    profileKeys().forEach(k => (D.profileDocs[k] || []).forEach(d => { if (!profDocs.includes(d)) profDocs.push(d); }));
-    if (state.city === "tbilisi" && state.citizen !== "ge") profDocs.unshift("Грузинский ВНЖ (оригинал и копия)");
-    if (state.city === "yerevan" && state.citizen !== "am") profDocs.unshift("Армянский вид на жительство (оригинал и копия)");
-
-    return { c, city, place, schengen, warnings, fee, base, profDocs, extra: c.extra || [] };
+  /* ---------- требования ---------- */
+  function feeText() {
+    const c = country(), z = cit();
+    if (!isSchengen()) return c.fees || "Уточните на официальном сайте";
+    if (state.vtype !== "short") return "Сбор за национальную визу (D) — по тарифу страны; уточните в посольстве.";
+    if (z.short === "free") return "Для поездки до 90 дней виза не нужна. " + z.fee;
+    return z.fee + " Плюс сервисный сбор визового центра, если подача через центр.";
+  }
+  function warnings() {
+    const c = country(), z = cit(), w = [];
+    if (isSchengen() && state.vtype === "short" && z.short === "free") w.push(["ok", z.shortNote]);
+    if (!isResident()) w.push(["warn", city().residentRule]);
+    const r = (D.restrictions[state.citizen] || {})[c.id];
+    if (r) w.push(["stop", `Граждане: ${z.name}. ${r} (по данным на март 2025 — проверьте актуальность)`]);
+    if (z.generalNote && isSchengen()) w.push(["warn", z.generalNote]);
+    if (place().check && state.vtype === "short") w.push(["warn", "Место подачи по этой стране требует проверки — позвоните в посольство или визовый центр перед записью."]);
+    return w;
+  }
+  function docsFor() {
+    const c = country(), p = place(), out = { base: [], client: [], country: [] };
+    const keys = [state.job, state.payer, state.travel, ...state.history, ...state.ties];
+    if (state.vtype === "short") keys.push(state.purpose);
+    if (state.vtype === "short") out.base = isSchengen() ? D.schengen.docs : (c.docs || []);
+    else out.base = D.national.docs[state.vtype === "study" ? "study" : state.vtype] || D.national.docs.work;
+    keys.forEach(k => (D.profileDocs[k] || []).forEach(d => { if (!out.client.includes(d)) out.client.push(d); }));
+    if (!isResident()) out.client.unshift(state.city === "tbilisi" ? "Грузинский ВНЖ (оригинал и копия)" : "Армянский вид на жительство (оригинал и копия)");
+    if (state.vtype === "short") out.country = [...((c.extra || {}).all || []), ...((c.extra || {})[state.city] || [])];
+    return out;
+  }
+  function programs() {
+    const t = state.vtype === "work" ? ["work", "jobsearch"] : [state.vtype];
+    return (country().programs || []).filter(p => t.includes(p.type));
   }
 
   function renderReq() {
-    const r = buildReq(), comments = $("comments").value.trim();
-    const li = (arr) => `<ul>${arr.map(x => `<li class="chk">${esc(x)}</li>`).join("")}</ul>`;
-    let h = `<h2>${esc(r.c.name)} — подача в ${esc(r.city.inName)}</h2>`;
+    const c = country(), p = place(), comments = $("comments").value.trim(), docs = docsFor();
+    const li = (a) => `<ul>${a.map(x => `<li class="chk">${esc(x)}</li>`).join("")}</ul>`;
+    let h = `<h2>${esc(c.name)} · ${esc(LABELS.vtype[state.vtype])} виза · подача в ${esc(city().inName)}</h2>`;
     h += `<p class="sub">${esc(profileText().replace(/\n/g, " · "))}</p>`;
-    r.warnings.forEach(w => h += `<div class="box warn">${esc(w)}</div>`);
+    warnings().forEach(([k, t]) => h += `<div class="box ${k}">${esc(t)}</div>`);
     if (comments) h += `<div class="box comment"><b>Важно по клиенту:</b> ${esc(comments).replace(/\n/g, "<br>")}</div>`;
 
-    h += `<h3>Где подавать${r.place.check ? '<span class="tag">уточнить</span>' : ""}</h3><dl class="kv">`;
-    h += `<dt>Куда</dt><dd>${esc(r.place.where)}</dd>`;
-    if (r.place.address) h += `<dt>Адрес</dt><dd>${esc(r.place.address)}</dd>`;
-    if (r.place.how) h += `<dt>Как</dt><dd>${esc(r.place.how)}</dd>`;
-    if (r.place.represents) h += `<dt>Ещё</dt><dd>${esc(r.place.represents)}</dd>`;
-    if (r.place.link) h += `<dt>Источник</dt><dd><a href="${esc(r.place.link)}" target="_blank" rel="noopener">${esc(r.place.link.replace(/^https?:\/\//, "").slice(0, 60))}</a></dd>`;
-    h += `</dl>`;
-
-    const fm = formOf(r.place);
-    h += `<h3>Анкета</h3><p><a href="${esc(fm.url)}" target="_blank" rel="noopener">${esc(fm.name)}</a>${fm.note ? `<br><span class="sub">${esc(fm.note)}</span>` : ""}</p>`;
-    h += `<h3>Сбор и сроки</h3><dl class="kv"><dt>Сбор</dt><dd>${esc(r.fee)}</dd>`;
-    if (r.schengen) h += `<dt>Сроки</dt><dd>${esc(D.schengen.timing)}</dd>`;
-    h += `</dl>`;
-
-    h += `<h3>Основные документы</h3>${li(r.base)}`;
-    if (r.profDocs.length) h += `<h3>Для этого клиента</h3>${li(r.profDocs)}`;
-    if (r.extra.length) h += `<h3>Особенности страны</h3>${li(r.extra)}`;
-    h += `<h3>Важно знать (${esc(r.city.name)})</h3><ul>${r.city.notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul>`;
-    h += `<p class="sub">Данные собраны: ${esc(D.checkedAt)}. Правила и адреса меняются — сверяйте с источником перед подачей.</p>`;
-    $("out").innerHTML = h;
-    setNote("Список собран из базы требований. Отметьте «Важные комментарии», чтобы они попали и в письма, и в чек-лист.");
-  }
-
-  function reqPlain() {
-    const r = buildReq();
-    const lines = [`${r.c.name} — подача в ${r.city.name}`, profileText(), ""];
-    r.warnings.forEach(w => lines.push("⚠ " + w));
-    lines.push("", "ГДЕ ПОДАВАТЬ: " + r.place.where);
-    if (r.place.address) lines.push("Адрес: " + r.place.address);
-    if (r.place.how) lines.push(r.place.how);
-    if (r.place.represents) lines.push(r.place.represents);
-    if (r.place.link) lines.push("Источник: " + r.place.link);
-    lines.push("", "АНКЕТА: " + formOf(r.place).name + " — " + formOf(r.place).url);
-    lines.push("", "СБОР: " + r.fee);
-    if (r.schengen) lines.push("СРОКИ: " + D.schengen.timing);
-    lines.push("", "ОСНОВНЫЕ ДОКУМЕНТЫ:", ...r.base.map(x => "☐ " + x));
-    if (r.profDocs.length) lines.push("", "ДЛЯ ЭТОГО КЛИЕНТА:", ...r.profDocs.map(x => "☐ " + x));
-    if (r.extra.length) lines.push("", "ОСОБЕННОСТИ СТРАНЫ:", ...r.extra.map(x => "☐ " + x));
-    return lines.join("\n");
-  }
-
-  /* ===== Анкета: ссылка и пример заполнения ===== */
-  function renderForm() {
-    const c = country(), city = D.cities[state.city], place = c[state.city], fm = formOf(place);
-    const schengen = c.group === "Шенген";
-    let h = `<h2>Анкета — ${esc(c.name)}, подача в ${esc(city.inName)}</h2>`;
-    h += `<p><b>Где заполнять:</b> <a href="${esc(fm.url)}" target="_blank" rel="noopener">${esc(fm.name)}</a></p>`;
-    if (fm.note) h += `<p class="sub">${esc(fm.note)}</p>`;
-    if (place.form !== "harmonised" && schengen)
-      h += `<p class="sub">Бумажный бланк единой формы: <a href="${esc(D.forms.harmonised.url)}" target="_blank" rel="noopener">${esc(D.forms.harmonised.name)}</a></p>`;
-    if (schengen && state.citizen === "ge") h += `<div class="box warn">Гражданам Грузии для поездки до 90 дней шенгенская виза не нужна.</div>`;
-    if (!schengen) {
-      h += `<div class="box info">У ${esc(c.name === "США" ? "США" : c.name === "Канада" ? "Канады" : "Великобритании")} своя анкета, поля отличаются от шенгенской. Нажмите «Заполнить анкету по данным клиента» — ассистент подготовит черновик ответов на основные вопросы этой анкеты.</div>`;
-      $("out").innerHTML = h; setNote("Ответы в анкете должны совпадать с документами клиента."); return;
+    if (state.vtype === "short") {
+      h += `<h3>Где подавать ${p.check ? '<span class="tag">уточнить</span>' : ""}</h3><dl class="kv"><dt>Куда</dt><dd>${esc(p.where)}</dd>`;
+      if (p.address) h += `<dt>Адрес</dt><dd>${esc(p.address)}</dd>`;
+      if (p.how) h += `<dt>Как</dt><dd>${esc(p.how)}</dd>`;
+      if (p.link) h += `<dt>Источник</dt><dd>${link(p.link)}</dd>`;
+      h += `</dl>`;
+      if (p.notes && p.notes.length) h += `<ul>${p.notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul>`;
+      const fm = formOf(p);
+      h += `<h3>Анкета</h3><p>${link(fm.url, fm.name)}${fm.note ? `<br><span class="sub">${esc(fm.note)}</span>` : ""}</p>`;
+      h += `<h3>Сбор и сроки</h3><dl class="kv"><dt>Сбор</dt><dd>${esc(feeText())}</dd>`;
+      if (isSchengen()) h += `<dt>Сроки</dt><dd>${esc(D.schengen.timing)}</dd>`;
+      const ml = moneyLine();
+      if (ml) h += `<dt>Деньги</dt><dd>${esc(ml)} <button type="button" class="link" data-goto="money">Расчёт</button></dd>`;
+      h += `</dl>`;
+    } else {
+      h += `<h3>Где подавать</h3><p>${esc((c.d || {})[state.city] || "Уточните в посольстве страны")}</p>`;
+      if (isSchengen()) h += `<p class="sub">${esc(D.national.rule)}</p>`;
+      const pr = programs();
+      h += `<h3>Программы</h3>`;
+      if (pr.length) pr.forEach(x => h += `<div class="prog"><b>${esc(x.name)}</b>${esc(x.sum)}${x.link ? `<br>${link(x.link)}` : ""}</div>`);
+      else h += `<div class="box info">Отдельной программы «${esc(LABELS.vtype[state.vtype])}» для этой страны в базе нет. Общий порядок: ${state.vtype === "nomad" ? "специальной визы для удалённой работы может не быть — уточните у посольства." : "приглашение / зачисление и разрешение, затем национальная виза D в посольстве страны."}</div>`;
+      h += `<p class="sub">Суммы дохода — ориентир на 2026 год по открытым обзорам; перед подачей сверьте с официальным сайтом.</p>`;
+      h += `<h3>Сбор</h3><p>${esc(feeText())}</p>`;
     }
-    h += `<h3>Пример заполнения по полям (единая форма 2026, вымышленный заявитель)</h3>`;
-    h += `<div class="ftable"><table><thead><tr><th>№</th><th>Поле</th><th>Как заполнять</th><th>Пример</th></tr></thead><tbody>`;
-    D.formGuide.forEach(g => h += `<tr><td>${g.n}</td><td>${esc(g.f)}</td><td>${esc(g.tip)}</td><td class="ex">${inline(g.ex)}</td></tr>`);
-    h += `</tbody></table></div>`;
-    h += `<h3>Общие правила</h3><ul>
-      <li>Все ответы — латиницей (на английском или языке страны), точно как в паспорте.</li>
-      <li>Данные в анкете должны совпадать со справкой с работы, бронями, страховкой и маршрутом.</li>
-      <li>Поля 21, 22, 30, 31 и 32 не заполняют члены семьи граждан ЕС, ЕЭЗ, Швейцарии и Великобритании (по Соглашению о выходе), если подают как члены семьи.</li>
-      <li>Анкету подписывает сам заявитель; за ребёнка — родитель или опекун.</li></ul>`;
-    $("out").innerHTML = h;
-    setNote("Вставьте данные клиента слева и нажмите «Заполнить анкету по данным клиента» — получите ответы по каждому полю.");
+
+    h += `<h3>Основные документы</h3>${li(docs.base)}`;
+    if (docs.client.length) h += `<h3>Для этого клиента</h3>${li(docs.client)}`;
+    if (docs.country.length) h += `<h3>Особенности: ${esc(c.name)}, ${esc(city().name)}</h3>${li(docs.country)}`;
+    if (city().notes.length) h += `<h3>Город подачи</h3><ul>${city().notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul>`;
+    h += `<p class="sub">Данные: ${esc(D.checkedAt)}. Правила меняются — сверяйте с источником перед подачей.</p>`;
+    out.innerHTML = h;
+    setNote("Отметьте кнопки клиента слева — список документов и вопросы подстроятся.");
   }
-  function formPlain() {
-    const c = country(), fm = formOf(c[state.city]);
-    return [`Анкета — ${c.name}: ${fm.name}`, fm.url, "", ...D.formGuide.map(g => `${g.n}. ${g.f}\n   Как: ${g.tip}\n   Пример: ${g.ex}`)].join("\n");
+  function reqPlain() {
+    const c = country(), p = place(), docs = docsFor(), L = [];
+    L.push(`${c.name} · ${LABELS.vtype[state.vtype]} виза · подача в ${city().inName}`, profileText(), "");
+    warnings().forEach(([, t]) => L.push("⚠ " + t));
+    if (state.vtype === "short") {
+      L.push("", "ГДЕ ПОДАВАТЬ: " + p.where); if (p.address) L.push("Адрес: " + p.address); if (p.how) L.push(p.how); if (p.link) L.push("Источник: " + p.link);
+      (p.notes || []).forEach(n => L.push("— " + n));
+      L.push("", "АНКЕТА: " + formOf(p).name + " — " + formOf(p).url, "", "СБОР: " + feeText());
+      if (isSchengen()) L.push("СРОКИ: " + D.schengen.timing);
+      const ml = moneyLine(); if (ml) L.push("ДЕНЬГИ: " + ml);
+    } else {
+      L.push("", "ГДЕ ПОДАВАТЬ: " + ((c.d || {})[state.city] || "уточнить"));
+      programs().forEach(x => L.push(`ПРОГРАММА: ${x.name} — ${x.sum}${x.link ? " (" + x.link + ")" : ""}`));
+      L.push("СБОР: " + feeText());
+    }
+    L.push("", "ОСНОВНЫЕ ДОКУМЕНТЫ:", ...docs.base.map(x => "☐ " + x));
+    if (docs.client.length) L.push("", "ДЛЯ ЭТОГО КЛИЕНТА:", ...docs.client.map(x => "☐ " + x));
+    if (docs.country.length) L.push("", "ОСОБЕННОСТИ СТРАНЫ:", ...docs.country.map(x => "☐ " + x));
+    return L.join("\n");
   }
 
-  /* ===== Генерация текстов ===== */
-  const out = $("out"), note = $("note");
-  const setNote = (t, warn) => { note.textContent = t; note.classList.toggle("warn", !!warn); };
+  /* ---------- вкладка «Деньги» ---------- */
+  function renderMoney() {
+    const c = country();
+    let h = `<h2>Сколько денег нужно — ${esc(c.name)}</h2>`;
+    if (state.vtype !== "short") {
+      const pr = programs();
+      h += `<p>Для национальных виз требования к доходу задаёт программа:</p>`;
+      if (pr.length) pr.forEach(x => h += `<div class="prog"><b>${esc(x.name)}</b>${esc(x.sum)}</div>`); else h += `<p class="sub">Программы в базе нет — уточните в посольстве.</p>`;
+      out.innerHTML = h; setNote(""); return;
+    }
+    if (!isSchengen()) {
+      h += `<div class="box info">У ${esc(c.name)} нет фиксированной суммы в день. Консул оценивает, хватает ли средств на всю поездку с учётом дохода и расходов. Обычно показывают выписки за 6 месяцев со стабильным остатком.</div>`;
+      out.innerHTML = h; setNote(""); return;
+    }
+    const r = money();
+    if (!r.n) h += `<div class="box warn">Укажите даты въезда и выезда слева — посчитаю сумму.</div>`;
+    if (r.all != null) h += `<p class="big">${fmt(r.all)} ${esc(r.m.cur)}</p><p class="sub">${esc(r.how)}${r.persons > 1 ? ` · на ${r.persons} человек` : ""}</p>`;
+    h += `<h3>Норма страны</h3><p>${esc(r.m.note || r.m.text || (r.per != null ? `${fmt(r.per)} ${r.m.cur} в день` : ""))}</p>`;
+    if (r.m.acc) h += `<p class="sub">Расчёт учитывает выбранное проживание: «${esc(LABELS.stay[state.stay])}».</p>`;
+    h += `<h3>Как показать</h3><ul>
+      <li>Выписка с личного счёта: остаток покрывает сумму выше (плюс запас на билеты и жильё, если они не оплачены).</li>
+      <li>Если платит спонсор — его выписка, спонсорское письмо и документ о родстве.</li>
+      <li>Оплаченные заранее отель и билеты уменьшают риск вопросов о средствах.</li>
+      <li>Крупное поступление прямо перед подачей лучше объяснить документом (продажа, зарплата, подарок).</li></ul>`;
+    h += `<p class="sub">Нормы — по таблице Еврокомиссии «Reference amounts» от 08.06.2026. Консульство может оценивать средства шире нормы.</p>`;
+    out.innerHTML = h; setNote("Сумма — минимальная норма для въезда. На практике лучше показывать больше.");
+  }
+
+  /* ---------- вкладка «Вопросы» ---------- */
+  function questionList() {
+    const Q = D.questions, list = [...Q.base];
+    const keys = [state.job, state.payer, state.travel, ...state.history, ...state.ties];
+    if (state.vtype === "short") keys.push(state.purpose); else keys.push(state.vtype === "study" ? "studyD" : state.vtype);
+    keys.forEach(k => (Q[k] || []).forEach(q => { if (!list.includes(q)) list.push(q); }));
+    ["property", "mortgage", "shop", "pets", "kidsHome", "deposit"].forEach(k => { if (!state.ties.includes(k)) (Q[k] || []).slice(0, 1).forEach(q => { const t = "Уточнить: " + q; if (!list.includes(t)) list.push(t); }); });
+    return list;
+  }
+  function renderQuestions() {
+    const qs = questionList();
+    let h = `<h2>Что спросить у клиента</h2><p class="sub">Ответы вставьте в «Данные клиента» — из них соберётся сильное письмо и анкета. Пункты «Уточнить» — то, что ещё не отмечено кнопками, но может усилить заявку.</p>`;
+    h += `<ol>${qs.map(q => `<li>${esc(q)}</li>`).join("")}</ol>`;
+    out.innerHTML = h; setNote("«Копировать» — готовый список, чтобы отправить клиенту в мессенджер.");
+  }
+
+  /* ---------- вкладка «Анкета» (памятка) ---------- */
+  function renderFormGuide() {
+    const c = country(), p = place(), fm = state.vtype === "short" ? formOf(p) : (c.id === "de" ? D.forms.deD : c.id === "hu" ? D.forms.hu : null);
+    let h = `<h2>Анкета — ${esc(c.name)}, ${esc(LABELS.vtype[state.vtype])}</h2>`;
+    if (fm) h += `<p><b>Где заполнять:</b> ${link(fm.url, fm.name)}</p>${fm.note ? `<p class="sub">${esc(fm.note)}</p>` : ""}`;
+    else h += `<p>Анкета на национальную визу — форма страны, обычно на сайте посольства или миграционной службы.</p>`;
+    if (isSchengen() && state.vtype === "short") {
+      if (p.form !== "harmonised") h += `<p class="sub">Бумажный бланк: ${link(D.forms.harmonised.url, D.forms.harmonised.name)}</p>`;
+      h += `<h3>Пример заполнения (форма 2026, вымышленный заявитель)</h3><div class="tbl"><table><thead><tr><th>№</th><th>Поле</th><th>Как заполнять</th><th>Пример</th></tr></thead><tbody>`;
+      D.formGuide.forEach(g => h += `<tr><td class="num">${g.n}</td><td>${esc(g.f)}</td><td>${esc(g.tip)}</td><td class="ex">${inline(g.ex)}</td></tr>`);
+      h += `</tbody></table></div><ul><li>Ответы — латиницей, точно как в паспорте.</li><li>Данные совпадают со справкой с работы, бронями, страховкой и маршрутом.</li><li>Анкету подписывает заявитель; за ребёнка — родитель или опекун.</li></ul>`;
+    }
+    h += `<div class="box info">Нажмите «Заполнить по данным клиента» — получите ответы по каждому полю и список противоречий.</div>`;
+    out.innerHTML = h; setNote("");
+  }
+  function formPlain() { return [`Анкета — ${country().name}`, ...D.formGuide.map(g => `${g.n}. ${g.f} — ${g.tip} Пример: ${g.ex}`)].join("\n"); }
+
+  /* ---------- рендер markdown (с таблицами) ---------- */
   const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\[([^\]\n]{2,80})\]/g, '<span class="fill">[$1]</span>');
   function render(md) {
-    let html = "", list = false;
-    const close = () => { if (list) { html += "</ul>"; list = false; } };
-    for (const raw of md.replace(/\r/g, "").split("\n")) {
-      const l = raw.trimEnd(); let m;
-      if (!l.trim()) { close(); continue; }
-      if ((m = l.match(/^#{1,4}\s+(.*)/))) { close(); html += `<h3>${inline(m[1])}</h3>`; continue; }
-      if ((m = l.match(/^\s*[-*•]\s+\[[ xX]?\]\s+(.*)/))) { if (!list) { html += "<ul>"; list = true; } html += `<li class="chk">${inline(m[1])}</li>`; continue; }
-      if ((m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/))) { if (!list) { html += "<ul>"; list = true; } html += `<li>${inline(m[1])}</li>`; continue; }
-      close(); html += `<p>${inline(l)}</p>`;
+    const lines = md.replace(/\r/g, "").split("\n"); let html = "", list = null, i = 0;
+    const close = () => { if (list) { html += `</${list}>`; list = null; } };
+    while (i < lines.length) {
+      const l = lines[i].trimEnd(); let m;
+      if (/^\s*\|.*\|\s*$/.test(l)) {
+        close(); const rows = [];
+        while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) { rows.push(lines[i].trim()); i++; }
+        const cells = (r) => r.replace(/^\||\|$/g, "").split("|").map(x => x.trim());
+        const body = rows.filter(r => !cells(r).every(x => /^:?-{2,}:?$/.test(x)));
+        const [head, ...rest] = body;
+        html += `<div class="tbl"><table><thead><tr>${cells(head).map(c => `<th>${inline(c)}</th>`).join("")}</tr></thead><tbody>${rest.map(r => `<tr>${cells(r).map(c => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+        continue;
+      }
+      if (!l.trim()) { close(); i++; continue; }
+      if ((m = l.match(/^#{1,4}\s+(.*)/))) { close(); html += `<h3>${inline(m[1])}</h3>`; }
+      else if ((m = l.match(/^\s*[-*•]\s+\[[ xX]?\]\s+(.*)/))) { if (list !== "ul") { close(); html += "<ul>"; list = "ul"; } html += `<li class="chk">${inline(m[1])}</li>`; }
+      else if ((m = l.match(/^\s*[-*•]\s+(.*)/))) { if (list !== "ul") { close(); html += "<ul>"; list = "ul"; } html += `<li>${inline(m[1])}</li>`; }
+      else if ((m = l.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== "ol") { close(); html += "<ol>"; list = "ol"; } html += `<li>${inline(m[1])}</li>`; }
+      else { close(); html += `<p>${inline(l)}</p>`; }
+      i++;
     }
     close(); return html;
   }
-  function showEmpty() {
-    out.innerHTML = `<div class="empty"><span class="stamp">ЧЕРНОВИК</span>
-      <p>Проверьте страну, город и кнопки профиля слева, вставьте данные клиента и нажмите «Подготовить».</p>
-      <p>Где данных не хватает, ассистент оставит пометку <span class="fill">[что вписать]</span>, а не придумает факты.</p></div>`;
-    setNote("Проверяйте текст перед отправкой. Данные клиента нигде не сохраняются.");
-  }
 
-  const EXAMPLE = `Пример (вымышленный клиент):
-Ани Саргсян, 12.04.1990, гражданство Армения, паспорт до 2031.
-Работает менеджером в ООО «Арарат Трейд» с 2019, зарплата 450 000 AMD.
-Туризм: Париж 5 дней, затем Лион 3 дня, 14–21 мая. Летит из Еревана.
-Платит сама. Замужем, сын 7 лет остаётся с мужем.
-Были визы: Италия 2023, Германия 2024.`;
-  $("example").onclick = () => { $("client").value = EXAMPLE; $("client").focus(); };
-
+  /* ---------- промпты ---------- */
   function buildPrompt() {
     const c = country(), lang = $("lang").value, comments = $("comments").value.trim();
     const rules = `ОБЩИЕ ПРАВИЛА:
-- Ты помогаешь сотруднику визового центра в Грузии и Армении. Результат он отправит клиенту или в консульство, поэтому текст должен быть готов к использованию без правок, кроме пропусков.
-- Никогда не выдумывай факты о клиенте (даты, суммы, названия, адреса, номера). Если чего-то не хватает, поставь в квадратных скобках, что вписать, например [название отеля].
-- Требования бери из БАЗЫ ТРЕБОВАНИЙ ниже — это главный источник. Если чего-то там нет, можешь дополнить из своих знаний, но помечай такие пункты «(уточнить)».
-- Обязательно учти ВАЖНЫЕ КОММЕНТАРИИ сотрудника: они важнее остального.
-- Не обещай одобрения визы и не давай гарантий.
-- Пиши без вступлений и пояснений от себя: сразу сам результат.
-- Форматирование: заголовки строкой с "## ", списки строками с "- ", чек-боксы "- [ ] ". Без таблиц.`;
-    const ctx = `СТРАНА ВИЗЫ: ${c.name}
-ГОРОД ПОДАЧИ: ${D.cities[state.city].name}
-
-ПРОФИЛЬ КЛИЕНТА (отмечен сотрудником):
+- Ты — опытный визовый специалист центра в Грузии и Армении. Результат уйдёт клиенту или в консульство, поэтому он должен быть готов к использованию без правок, кроме пропусков.
+- Никогда не выдумывай факты о клиенте (даты, суммы, названия, адреса, номера). Чего нет в данных — ставь в квадратных скобках, что вписать: [название отеля].
+- Требования бери из БАЗЫ ниже. Не упоминай другие страны, кроме выбранной (и той, чьё посольство принимает документы, если это указано в базе).
+- ВАЖНЫЕ КОММЕНТАРИИ сотрудника обязательно учти — они важнее остального.
+- Не обещай одобрения визы.
+- Без вступлений и пояснений от себя: сразу результат.
+- Форматирование: заголовки "## ", списки "- ", чек-боксы "- [ ] ", таблицы — в формате markdown (| … |).`;
+    const ctx = `СТРАНА: ${c.name}
+ГОРОД ПОДАЧИ: ${city().name}
+ПРОФИЛЬ КЛИЕНТА:
 ${profileText()}
+ВАЖНЫЕ КОММЕНТАРИИ: ${comments || "нет"}
 
-ВАЖНЫЕ КОММЕНТАРИИ СОТРУДНИКА: ${comments || "нет"}
-
-БАЗА ТРЕБОВАНИЙ (по данным центра):
+БАЗА (по данным центра):
 ${reqPlain()}
 
-ТОН ОБЩЕНИЯ ЦЕНТРА: ${CENTER.tone}${CENTER.signature ? `\nПОДПИСЬ: ${CENTER.signature}` : ""}
+ТОН ЦЕНТРА: ${CENTER.tone}${CENTER.signature ? `\nПОДПИСЬ: ${CENTER.signature}` : ""}
 
 ДАННЫЕ КЛИЕНТА (как есть):
 ${$("client").value.trim() || "не указаны"}`;
-    const extra = $("extra").value.trim() ? `\n\nПОЖЕЛАНИЯ К ТЕКСТУ: ${$("extra").value.trim()}` : "";
+    const extra = $("extra").value.trim() ? `\n\nПОЖЕЛАНИЯ: ${$("extra").value.trim()}` : "";
+    const tieWords = state.ties.map(t => LABELS.ties[t]).join(", ") || "не отмечено";
     const jobs = {
-      letter: `ЗАДАЧА: составь сопроводительное (мотивационное) письмо заявителя в консульство страны «${c.name}». Язык письма: на ${lang}.
-От лица заявителя, официально-деловой стиль, до одной страницы. Структура: данные заявителя, адресат (консульство/посольство, через которое идёт подача — см. базу), дата, тема (запрос визы и её тип), цель и маршрут поездки с датами, кто оплачивает и чем подтверждено, связь с родной страной (работа, семья, имущество) и намерение вернуться, предыдущие визы, перечень приложенных документов, подпись. Если в комментариях есть отказы или особые обстоятельства — аккуратно и честно учти их.
-Если язык письма не русский, после письма добавь раздел "## Перевод для сотрудника" с кратким пересказом на русском (3–5 строк).`,
-      itinerary: `ЗАДАЧА: составь маршрут поездки (travel itinerary) для визового пакета. Язык: на ${lang}.
-Шапка: имя заявителя, страна, даты поездки. Далее по дням: дата, город, план дня в 1–2 строки, место проживания, переезды. Даты строго в пределах поездки клиента. Отели и номера рейсов не выдумывай: [название отеля], [номер рейса]. В конце — адреса проживания по городам.`,
-      checklist: `ЗАДАЧА: на основе базы требований и профиля составь чек-лист документов для клиента на русском, чтобы отправить в мессенджер.
-Начни с 1–2 строк: куда подаём (город и место из базы). Группы: "## Основные документы", "## Для вашей ситуации", "## Финансы", "## Бронирования и страховка", при необходимости "## Для детей". Каждый пункт — что принести и требование одной фразой. Учти важные комментарии (например, отказы — что подготовить дополнительно). В конце: что делать, если какого-то документа нет.`,
-      form: c.group === "Шенген"
-        ? `ЗАДАЧА: подготовь ответы для заполнения единой шенгенской анкеты (форма 2026 года, поля 1–33) по данным клиента. Анкета заполняется в системе: ${formOf(c[state.city]).name}.
-Формат: для каждого поля строка "- **N. Название поля (по-русски)** — ответ". Ответы латиницей, как будут вписаны в анкету (имена и адреса — латиницей, как в паспорте; если написания в паспорте нет — дай транслитерацию и пометку [сверить с паспортом]). Где данных нет — [что вписать]. Поля, которые не относятся к клиенту, — «не заполняется».
+      letter: state.vtype === "short" ? `ЗАДАЧА: напиши сильное сопроводительное письмо заявителя в консульство (${c.name}). Язык: на ${lang}. Объём — 1–1,5 страницы, уверенный деловой тон, без заискивания и общих фраз.
+Структура:
+1. Шапка: ФИО, дата рождения, номер паспорта, адрес, телефон, e-mail заявителя; адресат — консульство/посольство, которое принимает документы (по базе); место и дата; тема — запрос краткосрочной шенгенской визы (туризм/цель) на даты.
+2. Цель и маршрут: даты въезда и выезда, города, где живёт в каждом, страна основного пребывания.
+3. Работа или бизнес — конкретно: компания, должность, с какого года, зарплата; для бизнеса — сфера, точка/офис, сотрудники, кто управляет в отсутствие; подтверждённый отпуск.
+4. Финансы: кто оплачивает, сколько на счёте, сравни с нормой страны из базы; оплачены ли отель и билеты.
+5. Связь с домом — главный абзац, каждую связь отдельно и конкретно: ${tieWords}. Ипотека/кредит — ежемесячные обязательства; дети в школе; уход за родителями; животные — кто присматривает; продолжение учёбы.
+6. Визовая история: предыдущие визы и соблюдение сроков; если были отказы — коротко и честно, что изменилось.
+7. Обязательство вернуться в срок, страховка, приложения — нумерованный список документов из базы.
+8. Подпись.
+Если язык не русский — после письма раздел "## Перевод для сотрудника" (5–7 строк по-русски).
+В конце раздел "## Чего не хватает для сильного письма" — 3–7 конкретных вопросов клиенту.`
+        : `ЗАДАЧА: напиши мотивационное письмо для национальной визы (${LABELS.vtype[state.vtype]}) в ${c.name}. Язык: на ${lang}. 1–1,5 страницы. Структура: шапка заявителя и адресат; цель (программа из базы); квалификация, опыт и доход — конкретно; для работы — работодатель, должность, условия; для кочевника — иностранный работодатель/заказчики, стабильность дохода в сравнении с порогом программы; для учёбы — программа и планы; жильё и страховка; соблюдение законов страны; приложения списком; подпись. Если язык не русский — "## Перевод для сотрудника". В конце "## Чего не хватает" — вопросы клиенту.`,
+      itinerary: `ЗАДАЧА: составь маршрутный лист (travel itinerary) для визового пакета. Язык: на ${lang}.
+Формат строго:
+## Маршрутный лист (заголовок на выбранном языке)
+Строки: ФИО заявителя; номер паспорта; гражданство; даты поездки; страна основного пребывания; страна первого въезда.
+Затем ОДНА markdown-таблица, по строке на КАЖДЫЙ день поездки без пропусков, колонки (названия на выбранном языке): Дата | День | Город, страна | Проживание (название, адрес) | Транспорт / переезд | План дня.
+День прилёта — рейс и аэропорт; дни переезда — поезд/автобус/рейс; день вылета — выезд из отеля и рейс. Отели и номера рейсов не выдумывай: [название отеля, адрес], [номер рейса].
+После таблицы: "## Проживание" — список: город, даты заезда–выезда, ночей, отель/адрес. И "## Итого" — всего дней, ночей по странам.
+Даты строго в пределах поездки клиента.`,
+      checklist: `ЗАДАЧА: составь чек-лист документов для клиента на русском — для мессенджера. Сначала 1–2 строки: куда подаём (по базе). Группы: "## Основные документы", "## Для вашей ситуации", "## Финансы" (с нормой суммы из базы), "## Бронирования и страховка", при необходимости "## Для детей". Каждый пункт — что принести и требование одной фразой. Учти комментарии. В конце — что делать, если документа нет.`,
+      reply: `ЗАДАЧА: ответь клиенту на вопрос. Для мессенджера: на языке вопроса, 3–8 предложений, по тону центра; причина простыми словами и следующий шаг. Опирайся на базу; если ответа там нет — предложи уточнить.
+ВОПРОС КЛИЕНТА: ${$("question").value.trim() || "[вопрос не указан]"}`,
+      form: isSchengen() && state.vtype === "short"
+        ? `ЗАДАЧА: подготовь ответы для единой шенгенской анкеты (форма 2026, поля 1–33) по данным клиента. Система: ${formOf(place()).name}.
+Формат — markdown-таблица: | № | Поле | Ответ |. Ответы латиницей, как будут вписаны; имена — как в паспорте (если написания нет — транслитерация и [сверить с паспортом]). Нет данных — [что вписать]. Не относится — «не заполняется».
 Поля: ${D.formGuide.filter(g => typeof g.n === "number").map(g => g.n + ". " + g.f).join("; ")}.
-Поле 25 — страна основного пребывания (больше всего дней; если поровну — первый въезд). Поле 33 — центр, если анкету заполняет сотрудник: [название центра, адрес, телефон].
-После полей добавь раздел "## Проверить перед подачей" — 3–6 пунктов: где данные клиента противоречат друг другу или чего не хватает, с учётом важных комментариев.`
-        : `ЗАДАЧА: подготовь черновик ответов на основные вопросы официальной анкеты (${formOf(c[state.city]).name}) по данным клиента. Сгруппируй по разделам анкеты (личные данные, паспорт, контакты, поездка, работа и доходы, семья, история поездок и виз, безопасность/прошлые отказы). Формат: "- **Вопрос** — ответ". Ответы на английском, как будут вписаны. Где данных нет — [что вписать]. В конце "## Проверить перед подачей" — 3–6 пунктов.`,
-      reply: `ЗАДАЧА: напиши ответ клиенту на его вопрос. Для мессенджера: на языке вопроса, 3–8 предложений, по тону центра. Объясни причину простыми словами и предложи следующий шаг. Опирайся на базу требований; если ответа там нет — не утверждай уверенно, предложи уточнить.
-
-ВОПРОС КЛИЕНТА:
-${$("question").value.trim() || "[вопрос не указан]"}`
+Поле 25 — страна с наибольшим числом дней. Поле 33 — если заполняет сотрудник: [название центра, адрес, телефон].
+После таблицы "## Проверить перед подачей" — 3–6 пунктов: противоречия и пробелы.`
+        : `ЗАДАЧА: подготовь черновик ответов на основные вопросы анкеты (${c.name}, ${LABELS.vtype[state.vtype]}) по данным клиента, по разделам анкеты этой страны. Формат — markdown-таблица | Вопрос | Ответ |, ответы на английском. Нет данных — [что вписать]. В конце "## Проверить перед подачей".`
     };
-    return `${rules}\n\n${ctx}${extra}\n\n${jobs[state.task]}`;
+    return `${rules}\n\n${ctx}${extra}\n\n${jobs[state.tab]}`;
   }
 
-  let ctl = null, lastRaw = "", lastPrompt = "", lastTask = "";
+  /* ---------- вкладки ---------- */
+  const AI = ["letter", "itinerary", "checklist", "reply", "form"];
+  const gens = {}; // готовые тексты по вкладкам
+  document.querySelectorAll(".tab").forEach(b => b.onclick = () => openTab(b.dataset.t));
+  document.addEventListener("click", (e) => {
+    const g = e.target.closest("[data-goto]"); if (g) openTab(g.dataset.goto);
+    if (e.target.id === "to-guide") { delete gens.form; renderTab(); }
+  });
+  function openTab(t) {
+    state.tab = t;
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x.dataset.t === t));
+    $("gen").hidden = !AI.includes(t);
+    $("lang-wrap").hidden = !["letter", "itinerary"].includes(t);
+    $("question-wrap").hidden = t !== "reply";
+    $("go").textContent = t === "form" ? "Заполнить по данным клиента" : "Подготовить";
+    $("again").hidden = !AI.includes(t) || !gens[t];
+    renderTab();
+  }
+  function renderTab() {
+    const t = state.tab;
+    if (t === "req") return renderReq();
+    if (t === "money") return renderMoney();
+    if (t === "questions") return renderQuestions();
+    if (gens[t]) { out.innerHTML = render(gens[t]) + (t === "form" ? `<p><button type="button" class="link" id="to-guide">← Памятка по анкете</button></p>` : ""); return; }
+    if (t === "form") return renderFormGuide();
+    out.innerHTML = `<div class="empty"><span class="stamp">ЧЕРНОВИК</span>
+      <p>${t === "letter" ? "Чем больше отмечено в «Что держит дома» и заполнено в «Данных клиента», тем сильнее письмо. Начните с вкладки «Вопросы клиенту»." : t === "itinerary" ? "Укажите даты слева и города / отели в «Данных клиента» — получится таблица по дням." : "Проверьте досье слева и нажмите «Подготовить»."}</p>
+      <p>Где данных не хватает, будет пометка <span class="fill">[что вписать]</span> — факты не придумываются.</p></div>`;
+    setNote("Проверяйте текст перед отправкой. Данные клиента нигде не сохраняются.");
+  }
+  function setNote(t, warn) { note.textContent = t; note.classList.toggle("warn", !!warn); }
+
+  /* ---------- генерация ---------- */
+  let ctl = null;
   try { $("code").value = localStorage.getItem("va-code") || ""; } catch (e) {}
   $("code").addEventListener("change", () => { try { localStorage.setItem("va-code", $("code").value); } catch (e) {} });
 
-  async function run(again) {
+  async function run() {
+    const t = state.tab;
     if (!$("code").value.trim()) { setNote("Введите код доступа вверху страницы.", true); $("code").focus(); return; }
-    if (state.task === "reply" && !$("question").value.trim()) { setNote("Вставьте вопрос клиента.", true); $("question").focus(); return; }
-    if (["letter", "itinerary", "form"].includes(state.task) && !$("client").value.trim()) { setNote("Вставьте данные клиента.", true); $("client").focus(); return; }
-    lastPrompt = buildPrompt();
-    try { localStorage.setItem("va-code", $("code").value); } catch (e) {}
+    if (t === "reply" && !$("question").value.trim()) { setNote("Впишите вопрос клиента.", true); $("question").focus(); return; }
+    if (["letter", "itinerary", "form"].includes(t) && !$("client").value.trim()) { setNote("Заполните «Данные клиента» слева.", true); $("client").focus(); return; }
+    const prompt = buildPrompt();
     ctl = new AbortController();
-    $("go").disabled = $("again").disabled = $("copy").disabled = true; $("stop").hidden = false;
-    out.innerHTML = '<p class="thinking">Готовлю… обычно 10–30 секунд</p>';
-    setNote("Проверяйте текст перед отправкой. Данные клиента нигде не сохраняются.");
-    lastRaw = ""; lastTask = state.task;
+    $("go").disabled = true; $("again").disabled = true; $("stop").hidden = false;
+    out.innerHTML = '<p class="thinking">Готовлю… обычно 15–40 секунд</p>';
+    let text = "";
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST", signal: ctl.signal, headers: { "content-type": "application/json" },
-        body: JSON.stringify({ prompt: lastPrompt, code: $("code").value.trim() })
-      });
+      const res = await fetch("/api/generate", { method: "POST", signal: ctl.signal, headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prompt, code: $("code").value.trim() }) });
       if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `Ошибка сервера (${res.status})`); }
       const reader = res.body.getReader(), dec = new TextDecoder();
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        lastRaw += dec.decode(value, { stream: true });
-        if (state.task === lastTask) out.innerHTML = render(lastRaw);
-      }
-      if (!lastRaw.trim()) throw new Error("Пустой ответ. Попробуйте ещё раз.");
-      if (state.task === lastTask && lastTask === "form") out.innerHTML = render(lastRaw) + backToGuide();
+      for (;;) { const { done, value } = await reader.read(); if (done) break; text += dec.decode(value, { stream: true }); gens[t] = text; if (state.tab === t) out.innerHTML = render(text); }
+      if (!text.trim()) throw new Error("Пустой ответ. Попробуйте ещё раз.");
+      if (state.tab === t) renderTab();
+      setNote("Проверьте текст перед отправкой.");
     } catch (e) {
-      if (e.name !== "AbortError") { if (!lastRaw) out.innerHTML = ""; setNote(e.message || "Связь прервалась. Попробуйте ещё раз.", true); }
-    } finally {
-      $("go").disabled = false; $("stop").hidden = true; $("copy").disabled = false; $("again").disabled = !lastPrompt;
-    }
+      if (e.name !== "AbortError") { if (!text) { delete gens[t]; out.innerHTML = ""; } setNote(e.message || "Связь прервалась.", true); }
+    } finally { $("go").disabled = false; $("stop").hidden = true; $("again").disabled = false; $("again").hidden = !gens[state.tab]; }
   }
-  $("form").addEventListener("submit", (e) => { e.preventDefault(); if (state.task !== "req") run(false); });
-  $("again").onclick = () => run(true);
+  $("go").onclick = run; $("again").onclick = run;
   $("stop").onclick = () => ctl && ctl.abort();
+  $("form").addEventListener("submit", (e) => e.preventDefault());
+
   $("copy").onclick = async () => {
-    const showingGen = lastRaw && lastTask === state.task;
-    const text = state.task === "req" ? reqPlain()
-      : state.task === "form" && !showingGen ? formPlain()
-      : !showingGen ? ""
-      : lastRaw.replace(/^#{1,4}\s+/gm, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^- \[ \] /gm, "☐ ");
+    const t = state.tab;
+    const text = t === "req" ? reqPlain() : t === "money" ? (moneyLine() || out.innerText) : t === "questions" ? questionList().map((q, i) => `${i + 1}. ${q}`).join("\n")
+      : gens[t] ? gens[t].replace(/^#{1,4}\s+/gm, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^- \[ \] /gm, "☐ ") : t === "form" ? formPlain() : "";
     if (!text) return;
     try { await navigator.clipboard.writeText(text); setNote("Скопировано."); }
-    catch (e) {
-      const r = document.createRange(); r.selectNodeContents(out);
-      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-      setNote("Текст выделен — нажмите Ctrl+C (⌘+C).");
-    }
+    catch (e) { const r = document.createRange(); r.selectNodeContents(out); const s = getSelection(); s.removeAllRanges(); s.addRange(r); setNote("Текст выделен — нажмите Ctrl+C (⌘+C)."); }
   };
 
-  function update() {
-    if (state.task === "req") renderReq();
-    else if (state.task === "form" && !(lastRaw && lastTask === "form")) renderForm();
-  }
-  syncChips(); renderReq();
+  $("example").onclick = () => {
+    $("client").value = `Пример (вымышленный клиент):
+Ани Саргсян, 12.04.1990, паспорт AB1234567 до 15.03.2031, Ереван, ул. Туманяна 12, кв. 5.
+Менеджер по продажам в ООО «Арарат Трейд» с 2019 года, зарплата 450 000 AMD, отпуск согласован.
+Свой небольшой цветочный магазин (ИП с 2021), там работает продавец.
+Ипотека в Ameriabank, платёж 180 000 AMD в месяц до 2034.
+Замужем, сын 7 лет учится во 2 классе, остаётся с мужем. Есть кошка — остаётся с мужем.
+На счёте около 2 900 000 AMD. Визы: Италия 2023, Германия 2024, отказов нет.
+Поездка: Париж 14–18.05 (отель бронь), Лион 18–21.05, вылет из Лиона.`;
+    $("from").value = "2026-05-14"; $("to").value = "2026-05-21";
+    state.ties = ["mortgage", "shop", "kidsHome", "spouseHome", "pets", "longJob"]; state.history = ["priorVisas"]; state.citizen = "am"; state.city = "yerevan";
+    sync();
+  };
+
+  sync();
 })();
 </script>
 </body>
