@@ -1,0 +1,6 @@
+{
+  "name": "visa-assistant",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" }
+}
