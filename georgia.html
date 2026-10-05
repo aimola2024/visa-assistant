@@ -185,6 +185,11 @@ ol.steps span{color:var(--muted);font-size:.9rem}
           <div class="chips" data-single="family">
             <button type="button" class="chip" data-v="alone">Один</button><button type="button" class="chip" data-v="spouse">С супругом</button><button type="button" class="chip" data-v="kids">С детьми</button>
           </div></div>
+        <div class="group"><span class="gl">Документы клиента выданы в</span>
+          <div class="chips" data-single="issuer">
+            <button type="button" class="chip" data-v="auto">По гражданству</button><button type="button" class="chip" data-v="cis">СНГ / Украина</button>
+            <button type="button" class="chip" data-v="hague">Страна Гаагской конвенции</button><button type="button" class="chip" data-v="other">Другая страна</button>
+          </div></div>
         <div class="row">
           <div><label class="label" for="entry">Дата въезда в Грузию</label><input type="date" id="entry"></div>
           <div><label class="label" for="expiry">ВНЖ / виза действует до</label><input type="date" id="expiry"></div>
@@ -205,6 +210,8 @@ ol.steps span{color:var(--muted);font-size:.9rem}
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-t="overview" aria-selected="true">Обзор</button>
         <button class="tab" role="tab" data-t="steps" aria-selected="false">Пошагово для юриста</button>
+        <button class="tab" role="tab" data-t="legal" aria-selected="false">Перевод и апостиль</button>
+        <button class="tab" role="tab" data-t="portals" aria-selected="false">Порталы и адреса</button>
         <button class="tab" role="tab" data-t="questions" aria-selected="false">Вопросы клиенту</button>
         <button class="tab" role="tab" data-t="plan" aria-selected="false">План для клиента<span class="ai">AI</span></button>
         <button class="tab" role="tab" data-t="checklist" aria-selected="false">Чек-лист<span class="ai">AI</span></button>
@@ -242,7 +249,7 @@ ol.steps span{color:var(--muted);font-size:.9rem}
   const CENTER = { tone: "вежливо, на «вы», спокойно и по делу, без канцелярита", signature: "" };
   const MAIN_CIT = ["ru", "by", "az", "am", "kz", "ua"];
   const LBL = { where: { in: "в Грузии", abroad: "за рубежом" }, status: { visafree: "безвиз", visaD: "виза D", rp: "есть ВНЖ", none: "ещё не въезжал" }, family: { alone: "один", spouse: "с супругом", kids: "с детьми" } };
-  const state = { service: "rp", variant: "work", citizen: "ru", where: "in", status: "visafree", family: "alone", tab: "overview" };
+  const state = { service: "rp", variant: "work", citizen: "ru", where: "in", status: "visafree", family: "alone", issuer: "auto", tab: "overview" };
 
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const svc = () => G.services.find(s => s.id === state.service);
@@ -316,6 +323,7 @@ ol.steps span{color:var(--muted);font-size:.9rem}
     warnings().forEach(([k, t]) => h += `<div class="box ${k}">${esc(t)}</div>`);
     if (comments) h += `<div class="box comment"><b>Важно по клиенту:</b> ${esc(comments).replace(/\n/g, "<br>")}</div>`;
     h += `<dl class="kv"><dt>Где</dt><dd>${esc(v.where)}</dd><dt>Срок</dt><dd>${esc(v.term)}</dd>${v.deadline ? `<dt>Важно</dt><dd>${esc(v.deadline)}</dd>` : ""}</dl>`;
+    h += `<p class="sub">Адреса в Тбилиси и Батуми, ссылки на порталы и инструкции — вкладка «Порталы и адреса»; что переводить и апостилировать — «Перевод и апостиль».</p>`;
     h += `<h3>Условия</h3>${li(v.req)}`;
     h += `<h3>Документы</h3>${li(v.docs, true)}`;
     if (state.family !== "alone" && state.service === "rp") h += `<h3>Для членов семьи</h3>${li(["Документы о родстве (свидетельства о браке / рождении) с апостилем и нотариальным переводом на грузинский", "Согласие / решение по основному заявителю (ВНЖ спонсора)", "Паспорта и фото 3×4 каждого"], true)}`;
@@ -351,6 +359,55 @@ ol.steps span{color:var(--muted);font-size:.9rem}
     out.innerHTML = `<h2>Что спросить у клиента</h2><p class="sub">Ответы — в «Данные клиента» слева.</p><ol>${qList().map(q => `<li>${esc(q)}</li>`).join("")}</ol>`;
     setNote("«Копировать» — список для мессенджера.");
   }
+
+
+  /* --- перевод и апостиль --- */
+  const L = G.legalization;
+  const issuerGroup = () => state.issuer === "auto" ? (L.byCitizen[state.citizen] || "hague") : state.issuer;
+  function docRows() {
+    const grp = L.groups[issuerGroup()];
+    return (G.docTable[state.service] || []).map(([doc, kind]) => {
+      let a, t, n = "";
+      if (kind === "passport") { a = "Не нужен"; t = "Обычно не нужен, если данные есть латиницей"; n = "Иначе — нотариальный перевод на грузинский"; }
+      else if (kind === "form") { a = "—"; t = "—"; n = "Заполняется / делается на месте"; }
+      else if (kind === "ge") { a = "Для Грузии не нужен"; t = "Не нужен"; n = "Если документ нужен за рубежом — апостиль в Доме юстиции (для стран СНГ обычно не нужен)"; }
+      else if (kind === "poa") { a = grp.apost; t = "Нужен — нотариальный, на грузинский"; n = "Доверенность из-за рубежа; банки нередко требуют апостиль даже для стран СНГ — уточните в банке"; }
+      else { a = grp.apost; t = "Нужен — нотариальный, на грузинский"; n = grp.note; }
+      return { doc, a, t, n };
+    });
+  }
+  function renderLegal() {
+    const g = issuerGroup(), grp = L.groups[g];
+    let h = `<h2>Перевод и апостиль — ${esc(svc().name)}</h2>`;
+    h += `<div class="box info">${esc(L.rule)} Сейчас: <b>${esc(grp.name)}</b> — ${esc(grp.apost.toLowerCase())}.${state.issuer === "auto" ? " Если документы выданы в другой стране — переключите «Документы клиента выданы в» слева." : ""}</div>`;
+    h += `<div class="tbl"><table><thead><tr><th>Документ</th><th>Апостиль / легализация</th><th>Перевод на грузинский</th><th>Комментарий</th></tr></thead><tbody>`;
+    docRows().forEach(r => h += `<tr><td>${esc(r.doc)}</td><td>${esc(r.a)}</td><td>${esc(r.t)}</td><td>${esc(r.n)}</td></tr>`);
+    h += `</tbody></table></div>`;
+    h += `<h3>Правила по группам стран</h3><div class="tbl"><table><thead><tr><th>Где выдан документ</th><th>Что нужно</th><th>Страны</th></tr></thead><tbody>`;
+    Object.values(L.groups).forEach(x => h += `<tr><td>${esc(x.name)}</td><td>${esc(x.apost)}</td><td>${esc(x.list)}</td></tr>`);
+    h += `</tbody></table></div><h3>Перевод</h3><p>${esc(L.translation)}</p><h3>Грузинские документы для заграницы</h3><p>${esc(L.outbound)}</p>`;
+    h += `<p class="sub">Требования конкретного органа (Дом юстиции, банк, консульство) могут быть строже — уточняйте при подаче.</p>`;
+    out.innerHTML = h; setNote("Таблица меняется по услуге и стране выдачи документов.");
+  }
+  const legalPlain = () => [`Перевод и апостиль — ${svc().name} (${L.groups[issuerGroup()].name})`, ...docRows().map(r => `— ${r.doc}: апостиль — ${r.a}; перевод — ${r.t}. ${r.n}`), "", L.translation].join("\n");
+
+  /* --- порталы и адреса --- */
+  function renderPortals() {
+    const P = G.portals, list = [...(P[state.service] || []), ...P.common];
+    let h = `<h2>Порталы и адреса — ${esc(svc().name)}</h2>`;
+    list.forEach(x => {
+      h += `<div class="prog"><b>${esc(x.name)}</b><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.url.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</a>${x.what ? `<br><span class="sub">${esc(x.what)}</span>` : ""}`;
+      if (x.how) h += `<ol>${x.how.map(s => `<li>${esc(s)}</li>`).join("")}</ol>`;
+      h += `</div>`;
+    });
+    h += `<h3>Где оформлять — Тбилиси и Батуми</h3><div class="tbl"><table><thead><tr><th>Город</th><th>Офис</th><th>Адрес</th><th>Услуги</th></tr></thead><tbody>`;
+    G.offices.list.forEach(o => h += `<tr><td>${esc(o.city)}</td><td>${esc(o.name)}</td><td>${esc(o.address)}</td><td>${esc(o.what)}</td></tr>`);
+    h += `</tbody></table></div><p>${esc(G.offices.hotline)}</p><p class="sub">${esc(G.offices.note)}</p>`;
+    if (state.service === "bank") h += `<p class="sub">Счета для иностранцев лучше открывать в центральных отделениях банков в Тбилиси или Батуми.</p>`;
+    if (state.service === "marriage") h += `<p class="sub">Регистрируют также Дома бракосочетания (торжественная регистрация).</p>`;
+    out.innerHTML = h; setNote("Ссылки ведут на официальные сайты.");
+  }
+  const portalsPlain = () => [...(G.portals[state.service] || []), ...G.portals.common].map(x => `${x.name}: ${x.url}${x.how ? "\n  " + x.how.map((s, i) => `${i + 1}) ${s}`).join("\n  ") : ""}`).concat(G.offices.list.map(o => `${o.city}: ${o.name}, ${o.address}`), [G.offices.hotline]).join("\n");
 
   /* --- markdown --- */
   const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\[([^\]\n]{2,80})\]/g, '<span class="fill">[$1]</span>');
@@ -390,7 +447,7 @@ ol.steps span{color:var(--muted);font-size:.9rem}
 - Учитывай ВАЖНЫЕ КОММЕНТАРИИ.
 - Не обещай результат решения госорганов.
 - Без вступлений. Форматирование: "## ", "- ", "- [ ] ", markdown-таблицы.`;
-    const ctx = `ПРОФИЛЬ:\n${profile()}\nВАЖНЫЕ КОММЕНТАРИИ: ${$("comments").value.trim() || "нет"}\n\nБАЗА:\n${overviewPlain()}\n\nПОШАГОВЫЙ ПЛАН (для юриста):\n${stepsPlain()}\n\nТОН: ${CENTER.tone}${CENTER.signature ? `\nПОДПИСЬ: ${CENTER.signature}` : ""}\n\nДАННЫЕ КЛИЕНТА:\n${$("client").value.trim() || "не указаны"}`;
+    const ctx = `ПРОФИЛЬ:\n${profile()}\nВАЖНЫЕ КОММЕНТАРИИ: ${$("comments").value.trim() || "нет"}\n\nБАЗА:\n${overviewPlain()}\n\nПОШАГОВЫЙ ПЛАН (для юриста):\n${stepsPlain()}\n\nПЕРЕВОД И АПОСТИЛЬ:\n${legalPlain()}\n\nПОРТАЛЫ И АДРЕСА:\n${portalsPlain()}\n\nТОН: ${CENTER.tone}${CENTER.signature ? `\nПОДПИСЬ: ${CENTER.signature}` : ""}\n\nДАННЫЕ КЛИЕНТА:\n${$("client").value.trim() || "не указаны"}`;
     const extra = $("extra").value.trim() ? `\n\nПОЖЕЛАНИЯ: ${$("extra").value.trim()}` : "";
     const jobs = {
       plan: `ЗАДАЧА: персональный план для клиента на ${lang} языке: что мы делаем, что нужно от клиента, сроки и стоимость госпошлин. Формат: короткое вступление (1–2 предложения: какую услугу оформляем и почему этот вариант), затем markdown-таблица | Шаг | Что делаем | От клиента | Срок |, затем "## Ключевые даты" (с учётом расчёта сроков из профиля), "## Риски и что проверить" (3–5 пунктов). Для мессенджера или e-mail.`,
@@ -415,6 +472,8 @@ ol.steps span{color:var(--muted);font-size:.9rem}
     if (t === "overview") return renderOverview();
     if (t === "steps") return renderSteps();
     if (t === "questions") return renderQuestions();
+    if (t === "legal") return renderLegal();
+    if (t === "portals") return renderPortals();
     if (gens[t]) { out.innerHTML = render(gens[t]); return; }
     out.innerHTML = `<div class="empty"><span class="stamp">ЧЕРНОВИК</span><p>${t === "poa" ? "Проект доверенности под выбранную услугу — для нотариуса." : t === "plan" ? "Персональный план: шаги, что нужно от клиента, ключевые даты." : "Проверьте досье слева и нажмите «Подготовить»."}</p><p>Где данных нет — пометка <span class="fill">[что вписать]</span>.</p></div>`;
     setNote("Проверяйте текст перед отправкой.");
@@ -446,7 +505,7 @@ ol.steps span{color:var(--muted);font-size:.9rem}
   $("form").addEventListener("submit", (e) => e.preventDefault());
   $("copy").onclick = async () => {
     const t = state.tab;
-    const text = t === "overview" ? overviewPlain() : t === "steps" ? stepsPlain() : t === "questions" ? qList().map((q, i) => `${i + 1}. ${q}`).join("\n") : (gens[t] || "").replace(/^#{1,4}\s+/gm, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^- \[ \] /gm, "☐ ");
+    const text = t === "overview" ? overviewPlain() : t === "steps" ? stepsPlain() : t === "legal" ? legalPlain() : t === "portals" ? portalsPlain() : t === "questions" ? qList().map((q, i) => `${i + 1}. ${q}`).join("\n") : (gens[t] || "").replace(/^#{1,4}\s+/gm, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^- \[ \] /gm, "☐ ");
     if (!text) return;
     try { await navigator.clipboard.writeText(text); setNote("Скопировано."); }
     catch (e) { const r = document.createRange(); r.selectNodeContents(out); const s = getSelection(); s.removeAllRanges(); s.addRange(r); setNote("Текст выделен — нажмите Ctrl+C (⌘+C)."); }
