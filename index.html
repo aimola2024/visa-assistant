@@ -108,6 +108,13 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
 .thinking{color:var(--muted);font-style:italic}
 .note{font-size:.82rem;color:var(--muted);padding:12px 18px;border-top:1px dashed var(--line)}
 .note.warn{color:var(--stamp)}
+.ftable{overflow-x:auto;margin:.6em 0;border:1px solid var(--line);border-radius:8px}
+.ftable table{border-collapse:collapse;width:100%;min-width:560px;font-size:.86rem}
+.ftable th,.ftable td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+.ftable th{font:500 .7rem/1.2 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+.ftable td:first-child{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.ftable td.ex{font-family:var(--f-mono);font-size:.8rem}
+.ftable tr:last-child td{border-bottom:0}
 .mrz{margin-top:36px;font:400 .78rem/1.5 var(--f-mono);color:var(--muted);opacity:.7;overflow:hidden;white-space:nowrap;letter-spacing:.12em;user-select:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -156,6 +163,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
           <button type="button" class="task" data-task="itinerary" aria-pressed="false"><b>Маршрут поездки</b><span>по дням</span></button>
           <button type="button" class="task" data-task="checklist" aria-pressed="false"><b>Чек-лист клиенту</b><span>текст в мессенджер</span></button>
           <button type="button" class="task" data-task="reply" aria-pressed="false"><b>Ответ клиенту</b><span>на сложный вопрос</span></button>
+          <button type="button" class="task wide" data-task="form" aria-pressed="false"><b>Анкета</b><span>ссылка на официальную анкету, пример заполнения по полям, ответы по данным клиента</span></button>
         </div>
       </div>
 
@@ -277,10 +285,11 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
   });
   sel.onchange = () => { state.country = sel.value; update(); };
   $("comments").addEventListener("input", () => { if (state.task === "req") renderReq(); });
+  const formOf = (place) => D.forms[place.form] || D.forms.harmonised;
 
   const TASKS = {
     req: "Требования и документы", letter: "Сопроводительное письмо", itinerary: "Маршрут поездки",
-    checklist: "Чек-лист клиенту", reply: "Ответ клиенту"
+    checklist: "Чек-лист клиенту", reply: "Ответ клиенту", form: "Анкета"
   };
   document.querySelectorAll(".task").forEach(b => b.onclick = () => {
     state.task = b.dataset.task;
@@ -290,10 +299,19 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
     $("lang-wrap").hidden = !["letter", "itinerary"].includes(state.task);
     $("question-wrap").hidden = state.task !== "reply";
     $("again").hidden = !ai;
+    $("go").textContent = state.task === "form" ? "Заполнить анкету по данным клиента" : "Подготовить";
     $("sheet-title").textContent = TASKS[state.task];
-    if (!ai) renderReq();
-    else if (!lastRaw || lastTask !== state.task) showEmpty();
+    showCurrent();
   });
+  // Показать то, что относится к выбранной задаче
+  function showCurrent() {
+    if (state.task === "req") return renderReq();
+    if (lastRaw && lastTask === state.task) { out.innerHTML = render(lastRaw) + (state.task === "form" ? backToGuide() : ""); return; }
+    if (state.task === "form") return renderForm();
+    showEmpty();
+  }
+  const backToGuide = () => `<p><button type="button" class="link" id="to-guide">← Показать памятку по анкете</button></p>`;
+  document.addEventListener("click", (e) => { if (e.target.id === "to-guide") { lastRaw = ""; renderForm(); } });
 
   /* ===== Требования: сборка из базы ===== */
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -313,7 +331,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
     const schengen = c.group === "Шенген";
     const warnings = [];
     if (schengen && state.citizen === "ge")
-      warnings.push("Граждане Грузии с биометрическим паспортом едут в Шенген без визы до 90 дней. Виза нужна только для поездки дольше 90 дней, работы или учёбы. С запуском ETIAS (ожидается в конце 2026 года) понадобится электронное разрешение.");
+      warnings.push("Граждане Грузии с биометрическим паспортом въезжают в Шенген без визы на срок до 90 дней в любые 180 дней. Для пребывания дольше 90 дней, работы или длительной учёбы нужна национальная виза (D). После запуска ETIAS (ЕС планирует его на конец 2026 года) перед поездкой понадобится электронное разрешение.");
     if (state.city === "tbilisi" && !["ge"].includes(state.citizen))
       warnings.push("Иностранец подаёт в Тбилиси только с грузинским ВНЖ. Приложите ВНЖ и подтверждение проживания.");
     if (state.city === "yerevan" && !["am"].includes(state.citizen))
@@ -323,7 +341,8 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
     if (place.check) warnings.push("Место подачи по этой стране требует проверки — позвоните в посольство или визовый центр перед записью.");
 
     let fee;
-    if (schengen) fee = (state.city === "yerevan" && state.citizen === "am") ? "35 € (гражданам Армении, соглашение об упрощении визового режима) + сервисный сбор центра" : D.schengen.fees[state.city];
+    if (schengen && state.citizen === "ge") fee = "Для поездки до 90 дней виза не нужна. Если оформляется национальная виза (D) — сбор по тарифу страны назначения.";
+    else if (schengen) fee = (state.city === "yerevan" && state.citizen === "am") ? "35 € (гражданам Армении, по соглашению об упрощении визового режима) + сервисный сбор визового центра, если подача через центр" : D.schengen.fees[state.city];
     else fee = c.fees || "Уточните на официальном сайте";
 
     const base = schengen ? D.schengen.docs : (c.docs || []);
@@ -338,7 +357,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
   function renderReq() {
     const r = buildReq(), comments = $("comments").value.trim();
     const li = (arr) => `<ul>${arr.map(x => `<li class="chk">${esc(x)}</li>`).join("")}</ul>`;
-    let h = `<h2>${esc(r.c.name)} — подача в ${r.city.name === "Тбилиси" ? "Тбилиси" : "Ереване"}</h2>`;
+    let h = `<h2>${esc(r.c.name)} — подача в ${esc(r.city.inName)}</h2>`;
     h += `<p class="sub">${esc(profileText().replace(/\n/g, " · "))}</p>`;
     r.warnings.forEach(w => h += `<div class="box warn">${esc(w)}</div>`);
     if (comments) h += `<div class="box comment"><b>Важно по клиенту:</b> ${esc(comments).replace(/\n/g, "<br>")}</div>`;
@@ -351,6 +370,8 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
     if (r.place.link) h += `<dt>Источник</dt><dd><a href="${esc(r.place.link)}" target="_blank" rel="noopener">${esc(r.place.link.replace(/^https?:\/\//, "").slice(0, 60))}</a></dd>`;
     h += `</dl>`;
 
+    const fm = formOf(r.place);
+    h += `<h3>Анкета</h3><p><a href="${esc(fm.url)}" target="_blank" rel="noopener">${esc(fm.name)}</a>${fm.note ? `<br><span class="sub">${esc(fm.note)}</span>` : ""}</p>`;
     h += `<h3>Сбор и сроки</h3><dl class="kv"><dt>Сбор</dt><dd>${esc(r.fee)}</dd>`;
     if (r.schengen) h += `<dt>Сроки</dt><dd>${esc(D.schengen.timing)}</dd>`;
     h += `</dl>`;
@@ -373,12 +394,44 @@ textarea{resize:vertical;min-height:80px;line-height:1.5}
     if (r.place.how) lines.push(r.place.how);
     if (r.place.represents) lines.push(r.place.represents);
     if (r.place.link) lines.push("Источник: " + r.place.link);
+    lines.push("", "АНКЕТА: " + formOf(r.place).name + " — " + formOf(r.place).url);
     lines.push("", "СБОР: " + r.fee);
     if (r.schengen) lines.push("СРОКИ: " + D.schengen.timing);
     lines.push("", "ОСНОВНЫЕ ДОКУМЕНТЫ:", ...r.base.map(x => "☐ " + x));
     if (r.profDocs.length) lines.push("", "ДЛЯ ЭТОГО КЛИЕНТА:", ...r.profDocs.map(x => "☐ " + x));
     if (r.extra.length) lines.push("", "ОСОБЕННОСТИ СТРАНЫ:", ...r.extra.map(x => "☐ " + x));
     return lines.join("\n");
+  }
+
+  /* ===== Анкета: ссылка и пример заполнения ===== */
+  function renderForm() {
+    const c = country(), city = D.cities[state.city], place = c[state.city], fm = formOf(place);
+    const schengen = c.group === "Шенген";
+    let h = `<h2>Анкета — ${esc(c.name)}, подача в ${esc(city.inName)}</h2>`;
+    h += `<p><b>Где заполнять:</b> <a href="${esc(fm.url)}" target="_blank" rel="noopener">${esc(fm.name)}</a></p>`;
+    if (fm.note) h += `<p class="sub">${esc(fm.note)}</p>`;
+    if (place.form !== "harmonised" && schengen)
+      h += `<p class="sub">Бумажный бланк единой формы: <a href="${esc(D.forms.harmonised.url)}" target="_blank" rel="noopener">${esc(D.forms.harmonised.name)}</a></p>`;
+    if (schengen && state.citizen === "ge") h += `<div class="box warn">Гражданам Грузии для поездки до 90 дней шенгенская виза не нужна.</div>`;
+    if (!schengen) {
+      h += `<div class="box info">У ${esc(c.name === "США" ? "США" : c.name === "Канада" ? "Канады" : "Великобритании")} своя анкета, поля отличаются от шенгенской. Нажмите «Заполнить анкету по данным клиента» — ассистент подготовит черновик ответов на основные вопросы этой анкеты.</div>`;
+      $("out").innerHTML = h; setNote("Ответы в анкете должны совпадать с документами клиента."); return;
+    }
+    h += `<h3>Пример заполнения по полям (единая форма 2026, вымышленный заявитель)</h3>`;
+    h += `<div class="ftable"><table><thead><tr><th>№</th><th>Поле</th><th>Как заполнять</th><th>Пример</th></tr></thead><tbody>`;
+    D.formGuide.forEach(g => h += `<tr><td>${g.n}</td><td>${esc(g.f)}</td><td>${esc(g.tip)}</td><td class="ex">${inline(g.ex)}</td></tr>`);
+    h += `</tbody></table></div>`;
+    h += `<h3>Общие правила</h3><ul>
+      <li>Все ответы — латиницей (на английском или языке страны), точно как в паспорте.</li>
+      <li>Данные в анкете должны совпадать со справкой с работы, бронями, страховкой и маршрутом.</li>
+      <li>Поля 21, 22, 30, 31 и 32 не заполняют члены семьи граждан ЕС, ЕЭЗ, Швейцарии и Великобритании (по Соглашению о выходе), если подают как члены семьи.</li>
+      <li>Анкету подписывает сам заявитель; за ребёнка — родитель или опекун.</li></ul>`;
+    $("out").innerHTML = h;
+    setNote("Вставьте данные клиента слева и нажмите «Заполнить анкету по данным клиента» — получите ответы по каждому полю.");
+  }
+  function formPlain() {
+    const c = country(), fm = formOf(c[state.city]);
+    return [`Анкета — ${c.name}: ${fm.name}`, fm.url, "", ...D.formGuide.map(g => `${g.n}. ${g.f}\n   Как: ${g.tip}\n   Пример: ${g.ex}`)].join("\n");
   }
 
   /* ===== Генерация текстов ===== */
@@ -447,6 +500,13 @@ ${$("client").value.trim() || "не указаны"}`;
 Шапка: имя заявителя, страна, даты поездки. Далее по дням: дата, город, план дня в 1–2 строки, место проживания, переезды. Даты строго в пределах поездки клиента. Отели и номера рейсов не выдумывай: [название отеля], [номер рейса]. В конце — адреса проживания по городам.`,
       checklist: `ЗАДАЧА: на основе базы требований и профиля составь чек-лист документов для клиента на русском, чтобы отправить в мессенджер.
 Начни с 1–2 строк: куда подаём (город и место из базы). Группы: "## Основные документы", "## Для вашей ситуации", "## Финансы", "## Бронирования и страховка", при необходимости "## Для детей". Каждый пункт — что принести и требование одной фразой. Учти важные комментарии (например, отказы — что подготовить дополнительно). В конце: что делать, если какого-то документа нет.`,
+      form: c.group === "Шенген"
+        ? `ЗАДАЧА: подготовь ответы для заполнения единой шенгенской анкеты (форма 2026 года, поля 1–33) по данным клиента. Анкета заполняется в системе: ${formOf(c[state.city]).name}.
+Формат: для каждого поля строка "- **N. Название поля (по-русски)** — ответ". Ответы латиницей, как будут вписаны в анкету (имена и адреса — латиницей, как в паспорте; если написания в паспорте нет — дай транслитерацию и пометку [сверить с паспортом]). Где данных нет — [что вписать]. Поля, которые не относятся к клиенту, — «не заполняется».
+Поля: ${D.formGuide.filter(g => typeof g.n === "number").map(g => g.n + ". " + g.f).join("; ")}.
+Поле 25 — страна основного пребывания (больше всего дней; если поровну — первый въезд). Поле 33 — центр, если анкету заполняет сотрудник: [название центра, адрес, телефон].
+После полей добавь раздел "## Проверить перед подачей" — 3–6 пунктов: где данные клиента противоречат друг другу или чего не хватает, с учётом важных комментариев.`
+        : `ЗАДАЧА: подготовь черновик ответов на основные вопросы официальной анкеты (${formOf(c[state.city]).name}) по данным клиента. Сгруппируй по разделам анкеты (личные данные, паспорт, контакты, поездка, работа и доходы, семья, история поездок и виз, безопасность/прошлые отказы). Формат: "- **Вопрос** — ответ". Ответы на английском, как будут вписаны. Где данных нет — [что вписать]. В конце "## Проверить перед подачей" — 3–6 пунктов.`,
       reply: `ЗАДАЧА: напиши ответ клиенту на его вопрос. Для мессенджера: на языке вопроса, 3–8 предложений, по тону центра. Объясни причину простыми словами и предложи следующий шаг. Опирайся на базу требований; если ответа там нет — не утверждай уверенно, предложи уточнить.
 
 ВОПРОС КЛИЕНТА:
@@ -462,8 +522,8 @@ ${$("question").value.trim() || "[вопрос не указан]"}`
   async function run(again) {
     if (!$("code").value.trim()) { setNote("Введите код доступа вверху страницы.", true); $("code").focus(); return; }
     if (state.task === "reply" && !$("question").value.trim()) { setNote("Вставьте вопрос клиента.", true); $("question").focus(); return; }
-    if (["letter", "itinerary"].includes(state.task) && !$("client").value.trim()) { setNote("Вставьте данные клиента.", true); $("client").focus(); return; }
-    if (!again) lastPrompt = buildPrompt();
+    if (["letter", "itinerary", "form"].includes(state.task) && !$("client").value.trim()) { setNote("Вставьте данные клиента.", true); $("client").focus(); return; }
+    lastPrompt = buildPrompt();
     try { localStorage.setItem("va-code", $("code").value); } catch (e) {}
     ctl = new AbortController();
     $("go").disabled = $("again").disabled = $("copy").disabled = true; $("stop").hidden = false;
@@ -484,6 +544,7 @@ ${$("question").value.trim() || "[вопрос не указан]"}`
         if (state.task === lastTask) out.innerHTML = render(lastRaw);
       }
       if (!lastRaw.trim()) throw new Error("Пустой ответ. Попробуйте ещё раз.");
+      if (state.task === lastTask && lastTask === "form") out.innerHTML = render(lastRaw) + backToGuide();
     } catch (e) {
       if (e.name !== "AbortError") { if (!lastRaw) out.innerHTML = ""; setNote(e.message || "Связь прервалась. Попробуйте ещё раз.", true); }
     } finally {
@@ -494,7 +555,10 @@ ${$("question").value.trim() || "[вопрос не указан]"}`
   $("again").onclick = () => run(true);
   $("stop").onclick = () => ctl && ctl.abort();
   $("copy").onclick = async () => {
+    const showingGen = lastRaw && lastTask === state.task;
     const text = state.task === "req" ? reqPlain()
+      : state.task === "form" && !showingGen ? formPlain()
+      : !showingGen ? ""
       : lastRaw.replace(/^#{1,4}\s+/gm, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^- \[ \] /gm, "☐ ");
     if (!text) return;
     try { await navigator.clipboard.writeText(text); setNote("Скопировано."); }
@@ -505,7 +569,10 @@ ${$("question").value.trim() || "[вопрос не указан]"}`
     }
   };
 
-  function update() { if (state.task === "req") renderReq(); }
+  function update() {
+    if (state.task === "req") renderReq();
+    else if (state.task === "form" && !(lastRaw && lastTask === "form")) renderForm();
+  }
   syncChips(); renderReq();
 })();
 </script>
